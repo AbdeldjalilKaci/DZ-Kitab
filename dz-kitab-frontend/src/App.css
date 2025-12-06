@@ -17,7 +17,15 @@ header {
   align-items: center;
   padding: 20px 50px;
 }
-
+.website-title{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+}
+.logo{
+  width: 30px;
+}
 header span {
   color: #F3A109;
 }

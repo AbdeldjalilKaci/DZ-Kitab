@@ -3,7 +3,10 @@ import { Button } from './button'
 const Header = () => {
     return (
         <header>
-            <a className="a"><h3><span>DZ</span>-KITAB</h3></a>
+            <div className="website-title">
+                <img className='logo' src='./dz-kitablogo.png'></img>
+                <a className="a"><h3><span>DZ</span>-KITAB</h3></a>
+            </div>
             <div className="links">
                 <a>Home</a>
                 <a>About us</a>
@@ -13,7 +16,7 @@ const Header = () => {
                 <button className='login-button'>Login</button>
                 <button className='register-button'>Register</button>
             </div>
-        </header>   
+        </header>
     )
 }
 
