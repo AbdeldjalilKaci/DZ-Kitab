@@ -166,6 +166,7 @@ header .register-button {
   margin-left: 10px;
   outline: none;
   width: 350px;
+  background: transparent;
 }
 
 .hero .search-button {
