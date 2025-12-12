@@ -58,7 +58,7 @@ body {
 /* ######################################## */
 /* header  */
 
-header {
+.guest-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -144,6 +144,37 @@ header .register-button {
   transition: transform 0.3s ease;
 }
 
+.user-header{
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+}
+.user{
+  border-radius: 50%;
+  background-color: #1314D7;
+  color: white;
+  padding: 5px 10px;
+  font-weight: bold;
+
+}
+.icons-link{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap:30px;
+
+}
+.icons-link .icon{
+  font-weight: 700;
+  font-size: 20px;
+}
+.user-links{
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
 /* ######################################## */
 /* hero section  */
 
