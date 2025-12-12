@@ -23,6 +23,12 @@ export const Books = () => {
                     desc={"Trouvez des livres neufs et d'occasion à des prix compétitifs partout en Algérie"}
                     price={'3000 DA'}
                 />
+                <BookCard
+                    img={'./math.png'}
+                    title={'MATHS'}
+                    desc={"Trouvez des livres neufs et d'occasion à des prix compétitifs partout en Algérie"}
+                    price={'3000 DA'}
+                />
             </div>
         </section>
     )

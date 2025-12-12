@@ -1,17 +1,15 @@
-import { useState } from 'react'
 import { Routes, Route } from "react-router-dom";
-import { Landingpage } from './pages/LandingPage'
+import Layout from "./Layout";
+import { Landingpage } from "./pages/LandingPage";
+import { NotFound } from "./NotFound";
 import './App.css'
-
-function App() {
-
+export default function App() {
   return (
-    <>
-      <Routes>
+    <Routes>
+      <Route element={<Layout />}>
         <Route path="/" element={<Landingpage />} />
-      </Routes>
-    </>
-  )
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
 }
-
-export default App

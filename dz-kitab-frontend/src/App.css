@@ -6,6 +6,32 @@ body {
   display: flex;
   flex-direction: column;
 }
+.notfound-page{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 50px;
+  background: linear-gradient(to bottom , #E3E3FD,#E2DAD8);
+  height: 100vh;
+}
+.notfound-page h1{
+   position: absolute;
+  top: 0;
+  font-size: 180px;
+  color: #F3A109;
+}
+.notfound-page img{
+  position: absolute;
+  width: 400px;
+  margin-top:70px ;
+}
+.notfound-page p{
+  position: absolute;
+  top: 350px;
+  font-size: 40px;
+  font-weight: bold;
+}
 
 ::-webkit-scrollbar {
   width: 10px;
@@ -324,7 +350,9 @@ header .register-button {
 .books-div {
   width: 100%;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 10px;
 }
 
 .book-card h4 {
@@ -353,6 +381,13 @@ header .register-button {
   border-radius: 30px;
   border: #000 solid;
   background-color: transparent;
+  cursor: pointer;
+}
+.buy-book button:hover{
+  background-color: #1314D7;
+  border: #1314D7 solid;
+  color: white;
+  transition: background 0.4s ease, transform 0.4s ease;
 }
 
 /* ######################################## */
