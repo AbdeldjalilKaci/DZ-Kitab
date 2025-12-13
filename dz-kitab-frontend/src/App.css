@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
 body {
   margin: 0;
@@ -16,7 +16,7 @@ body {
   justify-content: center;
   align-items: center;
   padding: 0 50px;
-  background: linear-gradient(to bottom, #E3E3FD, #E2DAD8);
+  background: linear-gradient(to bottom, #e3e3fd, #e2dad8);
   height: 100vh;
   position: relative;
   overflow: hidden;
@@ -26,7 +26,7 @@ body {
   position: absolute;
   top: 0;
   font-size: 180px;
-  color: #F3A109;
+  color: #f3a109;
   margin-top: 50px;
   line-height: 1;
 }
@@ -57,12 +57,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #F3A109;
+  background: #f3a109;
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #1314D7;
+  background: #1314d7;
 }
 
 /* ============================================================ */
@@ -100,13 +100,19 @@ body {
 }
 
 header span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 header .buttons {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+header .buttons a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
 }
 
 header .links {
@@ -133,12 +139,12 @@ header .a:hover {
 }
 
 header a:hover {
-  color: #1314D7;
+  color: #1314d7;
   font-weight: 600;
 }
 
 header a:active {
-  color: #1314D7;
+  color: #1314d7;
   font-weight: 600;
 }
 
@@ -150,8 +156,8 @@ header .login-button {
   height: 30px;
   color: white;
   border-radius: 5px;
-  border: #1314D7 solid;
-  background-color: #1314D7;
+  border: #1314d7 solid;
+  background-color: #1314d7;
   cursor: pointer;
   transition: transform 0.3s ease;
   min-width: 80px;
@@ -165,7 +171,7 @@ header .register-button {
   height: 30px;
   color: black;
   border-radius: 5px;
-  border: #1314D7 solid;
+  border: #1314d7 solid;
   background-color: white;
   cursor: pointer;
   transition: transform 0.3s ease;
@@ -174,7 +180,7 @@ header .register-button {
 
 .user {
   border-radius: 50%;
-  background-color: #1314D7;
+  background-color: #1314d7;
   color: white;
   padding: 5px 10px;
   font-weight: bold;
@@ -210,7 +216,7 @@ header .register-button {
 /* HERO SECTION */
 /* ============================================================ */
 .hero {
-  background: linear-gradient(to bottom, #E3E3FD, #E2DAD8);
+  background: linear-gradient(to bottom, #e3e3fd, #e2dad8);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -225,12 +231,12 @@ header .register-button {
 }
 
 .hero .p {
-  color: #2C2B2B;
+  color: #2c2b2b;
   width: 500px;
 }
 
 .hero span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 .heroinfo {
@@ -265,8 +271,8 @@ header .register-button {
   width: 100px;
   height: 40px;
   color: white;
-  background-color: #1314D7;
-  border: #1314D7 solid;
+  background-color: #1314d7;
+  border: #1314d7 solid;
   border-top-right-radius: 10px;
   border-bottom-right-radius: 10px;
   font-size: 14px;
@@ -314,7 +320,7 @@ header .register-button {
 }
 
 .services-section span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 .services-section .p {
@@ -336,7 +342,7 @@ header .register-button {
 
 .service-card {
   position: relative;
-  background-color: #1314D7;
+  background-color: #1314d7;
   border-radius: 10px;
   width: 230px;
   height: 200px;
@@ -389,7 +395,7 @@ header .register-button {
 }
 
 .popular-books span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 .book-card {
@@ -438,7 +444,7 @@ header .register-button {
 }
 
 .book-card .book-desc {
-  color: #3E3D3D;
+  color: #3e3d3d;
 }
 
 .book-card .buy-book {
@@ -468,8 +474,8 @@ header .register-button {
 }
 
 .buy-book button:hover {
-  background-color: #1314D7;
-  border: #1314D7 solid;
+  background-color: #1314d7;
+  border: #1314d7 solid;
   color: white;
 }
 
@@ -487,7 +493,7 @@ header .register-button {
 }
 
 .category-section span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 .category-section h3 {
@@ -548,9 +554,11 @@ header .register-button {
 .card-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom right,
-      rgba(255, 255, 255, 0.9),
-      rgba(255, 255, 255, 0.6));
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.9),
+    rgba(255, 255, 255, 0.6)
+  );
   transition: opacity 0.35s ease;
 }
 
@@ -588,12 +596,12 @@ footer {
   flex-direction: column;
   gap: 10;
   padding: 20px 50px;
-  background: linear-gradient(to bottom, #E3E3FD, #E2DAD8);
+  background: linear-gradient(to bottom, #e3e3fd, #e2dad8);
   margin: 0;
 }
 
 footer span {
-  color: #F3A109;
+  color: #f3a109;
 }
 
 .footer-content {
@@ -612,7 +620,7 @@ footer ul {
   padding-left: 0;
   margin-left: 0;
   list-style-position: inside;
-  color: #504F4F;
+  color: #504f4f;
   display: grid;
   gap: 10px;
 }
@@ -646,7 +654,6 @@ footer p {
 }
 
 @media (min-width: 1200px) {
-
   .services-section .services-cards,
   .books-div,
   .category-section .categorys {
@@ -655,7 +662,6 @@ footer p {
 }
 
 @media (max-width: 1199px) and (min-width: 992px) {
-
   .guest-header,
   .user-header {
     padding: 20px 30px;
@@ -678,7 +684,6 @@ footer p {
     /* height: 100%; */
   }
 
-  
   .services-section,
   .popular-books,
   .category-section {
@@ -707,7 +712,6 @@ footer p {
 }
 
 @media (max-width: 991px) and (min-width: 768px) {
-
   .guest-header,
   .user-header {
     padding: 20px;
@@ -813,7 +817,6 @@ footer p {
 }
 
 @media (max-width: 767px) and (min-width: 576px) {
-
   .guest-header,
   .user-header {
     padding: 15px;
@@ -964,7 +967,6 @@ footer p {
 }
 
 @media (max-width: 575px) {
-
   .guest-header,
   .user-header {
     padding: 15px;
@@ -1157,7 +1159,6 @@ footer p {
 }
 
 @media (max-width: 375px) {
-
   .guest-header,
   .user-header {
     padding: 10px;
