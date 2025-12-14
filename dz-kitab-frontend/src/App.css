@@ -546,7 +546,7 @@ header .register-button {
   gap: 30px;
 }
 
-.category-card {
+ .category-card {
   width: 250px;
   height: 200px;
   border-radius: 5px;
@@ -559,17 +559,18 @@ header .register-button {
   flex: 1;
   min-width: 250px;
   max-width: 100%;
+  transition: all 0.35s ease, z-index 0s 0.35s;
 }
 
 .category-card:hover {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  border-radius: 0;
-  z-index: 10;
+  z-index: 100;
+  transform: scale(1.3);
+  transform-origin: center center;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.35s ease, z-index 0s 0s;
+  position: relative;
 }
+
 
 .card-bg {
   position: absolute;
