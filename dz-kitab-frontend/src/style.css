@@ -170,6 +170,7 @@ body {
 .notfound-page {
   display: flex;
   flex-direction: column;
+  gap: 70px;
   justify-content: center;
   align-items: center;
   padding: 0 50px;
@@ -179,23 +180,20 @@ body {
   overflow: hidden;
 }
 .notfound-page h1 {
-  position: absolute;
-  top: 0;
   font-size: 180px;
   color: #f3a109;
   margin-top: 50px;
   line-height: 1;
+  font-weight: bold;
 }
 .notfound-page img {
   position: absolute;
   width: 400px;
-  margin-top: 70px;
+  margin-top: 90px;
   max-width: 90%;
   height: auto;
 }
 .notfound-page p {
-  position: absolute;
-  top: 350px;
   font-size: 40px;
   font-weight: bold;
   text-align: center;
