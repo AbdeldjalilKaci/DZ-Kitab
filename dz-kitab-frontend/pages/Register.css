@@ -9,48 +9,114 @@
 }
 
 /* Page Layout - Split 50/50 */
-.login-page {
+.register-page {
   display: flex;
   width: 100%;
   min-height: 100vh;
   font-family: "Inter", "Roboto", sans-serif;
 }
 
-/* ========== LEFT SIDE ========== */
-.login-left {
+/* ========== LEFT SIDE - Colored Panel ========== */
+.register-left {
   flex: 1;
-  background: #ffffff;
+  background: linear-gradient(135deg, #e3e3fd 0%, #e2dad8 100%);
   display: flex;
   flex-direction: column;
-  padding: 40px 60px;
-  position: relative;
+  align-items: center;
+  justify-content: center;
+  padding: 60px;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0 100%);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Logo */
-.login-logo {
+.register-logo {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 20px;
   font-weight: 600;
   color: #e8a017;
-  margin-bottom: 60px;
   letter-spacing: 0.5px;
+  position: absolute;
+  top: 40px;
+  left: 60px;
   text-decoration: none;
   cursor: pointer;
   transition: opacity 0.2s;
 }
 
-.login-logo:hover {
+.register-logo:hover {
   opacity: 0.8;
 }
 
-/* Login Content */
-.login-content {
+.signin-content {
+  text-align: center;
+  max-width: 480px;
+}
+
+.signin-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #000000;
+  margin-bottom: 16px;
+  line-height: 1.3;
+}
+
+.signin-title .highlight {
+  color: #e8a017;
+}
+
+.signin-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.signin-button {
+  padding: 12px 40px;
+  background: #1a3ce4;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(26, 60, 228, 0.2);
+}
+
+.signin-button:hover {
+  background: #1534c6;
+  box-shadow: 0 6px 12px rgba(26, 60, 228, 0.3);
+  transform: translateY(-2px);
+}
+
+.signin-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(26, 60, 228, 0.2);
+}
+
+/* ========== RIGHT SIDE - Form Panel ========== */
+.register-right {
+  flex: 1;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  padding: 40px 60px;
+  padding-top: 120px;
+  position: relative;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Register Content */
+.register-content {
   max-width: 480px;
   margin: auto;
   width: 100%;
 }
 
-.login-title {
+.register-title {
   font-size: 28px;
   font-weight: 700;
   color: #000000;
@@ -59,11 +125,11 @@
   text-align: center;
 }
 
-.login-title .highlight {
+.register-title .highlight {
   color: #e8a017;
 }
 
-.login-subtitle {
+.register-subtitle {
   font-size: 14px;
   color: #6b7280;
   margin-bottom: 40px;
@@ -72,10 +138,19 @@
 }
 
 /* Form */
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+}
+
+.form-row .form-group {
+  flex: 1;
 }
 
 .form-group {
@@ -107,6 +182,21 @@
   color: #9ca3af;
 }
 
+/* Select Dropdown */
+.form-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+.form-select option {
+  padding: 10px;
+}
+
 /* Password Toggle */
 .password-toggle {
   position: absolute;
@@ -129,46 +219,8 @@
   opacity: 1;
 }
 
-/* Form Options */
-.form-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.remember-me {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  color: #374151;
-  cursor: pointer;
-  user-select: none;
-}
-
-.remember-me input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #1a3ce4;
-}
-
-.forgot-password {
-  font-size: 13px;
-  color: #e8a017;
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.forgot-password:hover {
-  color: #d49015;
-  text-decoration: underline;
-}
-
-/* Login Button */
-.login-button {
+/* Register Button */
+.register-button {
   width: 100%;
   padding: 14px;
   background: #1a3ce4;
@@ -184,100 +236,24 @@
   box-shadow: 0 4px 6px rgba(26, 60, 228, 0.2);
 }
 
-.login-button:hover {
+.register-button:hover {
   background: #1534c6;
   box-shadow: 0 6px 12px rgba(26, 60, 228, 0.3);
   transform: translateY(-2px);
 }
 
-.login-button:active {
+.register-button:active {
   transform: translateY(0);
   box-shadow: 0 2px 4px rgba(26, 60, 228, 0.2);
 }
 
-/* ========== RIGHT SIDE ========== */
-.login-right {
-  flex: 1;
-  background: linear-gradient(135deg, #e3e3fd 0%, #e2dad8 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 15% 100%);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.login-left {
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.signup-content {
-  text-align: center;
-  max-width: 480px;
-}
-
-.signup-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #000000;
-  margin-bottom: 16px;
-  line-height: 1.3;
-}
-
-.signup-title .highlight {
-  color: #e8a017;
-}
-
-.signup-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin-bottom: 40px;
-  line-height: 1.6;
-}
-
-.signup-button {
-  padding: 12px 40px;
-  background: #1a3ce4;
-  color: #ffffff;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(26, 60, 228, 0.2);
-}
-
-.signup-button:hover {
-  background: #1534c6;
-  box-shadow: 0 6px 12px rgba(26, 60, 228, 0.3);
-  transform: translateY(-2px);
-}
-
-.signup-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(26, 60, 228, 0.2);
-}
-
-/* ========== ANIMATION ========== */
-.login-page.slide-in .login-left {
-  animation: slideInFromRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.login-page.slide-in .login-right {
+/* ========== ANIMATION STATES ========== */
+.register-page.slide-in .register-left {
   animation: slideInFromLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@keyframes slideInFromRight {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  100% {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.register-page.slide-in .register-right {
+  animation: slideInFromRight 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes slideInFromLeft {
@@ -291,53 +267,69 @@
   }
 }
 
+@keyframes slideInFromRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* ========== RESPONSIVE DESIGN ========== */
 @media (max-width: 968px) {
-  .login-page {
+  .register-page {
     flex-direction: column;
   }
 
-  .login-left,
-  .login-right {
+  .register-left,
+  .register-right {
     flex: none;
     width: 100%;
     min-height: 50vh;
   }
 
-  .login-left {
+  .register-right {
     padding: 30px 40px;
   }
 
-  .login-logo {
+  .register-logo {
     margin-bottom: 40px;
   }
 
-  .login-right {
+  .register-left {
     padding: 40px;
   }
 
-  .login-title,
-  .signup-title {
+  .register-title,
+  .signin-title {
     font-size: 30px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
   }
 }
 
 @media (max-width: 640px) {
-  .login-left {
+  .register-right {
     padding: 24px;
   }
 
-  .login-right {
+  .register-left {
     padding: 30px 24px;
   }
 
-  .login-title,
-  .signup-title {
+  .register-title,
+  .signin-title {
     font-size: 26px;
   }
 
-  .login-subtitle,
-  .signup-subtitle {
+  .register-subtitle,
+  .signin-subtitle {
     font-size: 14px;
   }
 
@@ -346,8 +338,8 @@
     font-size: 14px;
   }
 
-  .login-button,
-  .signup-button {
+  .register-button,
+  .signin-button {
     font-size: 14px;
     padding: 14px;
   }

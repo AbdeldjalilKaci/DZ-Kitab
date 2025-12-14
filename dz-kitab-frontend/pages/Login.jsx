@@ -1,11 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
 
 const Login = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    setAnimate(true);
+  }, []);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -14,15 +21,16 @@ const Login = () => {
   };
 
   const handleSignUp = () => {
-    console.log("Navigate to sign up");
-    // Add your navigation logic here
+    navigate("/register");
   };
 
   return (
-    <div className="login-page">
+    <div className={`login-page ${animate ? "slide-in" : ""}`}>
       {/* LEFT SIDE */}
       <div className="login-left">
-        <div className="login-logo">DZ-KITAB</div>
+        <Link to="/" className="login-logo">
+          DZ-KITAB
+        </Link>
 
         <div className="login-content">
           <h1 className="login-title">

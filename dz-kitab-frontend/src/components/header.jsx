@@ -1,18 +1,25 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiMessageSquare } from "react-icons/fi";
 import { CiSearch } from "react-icons/ci";
 import { CiHeart } from "react-icons/ci";
 import { IoIosNotificationsOutline } from "react-icons/io";
 const Header = () => {
+  const navigate = useNavigate()
+  const nagigate_to_login_page = ()=>{
+    navigate('/login')
+  }
+  const nagigate_to_register_page = ()=>{
+    navigate('/register')
+  }
   return (
     <header>
       <div className="guest-header">
         <div className="website-title">
           <img className="logo" src="./dz-kitablogo.png"></img>
-          <a className="a">
-            <h3>
-              <span>DZ</span>-KITAB
+          <a className=" a">
+            <h3 className="">
+              <span className="  ">DZ</span>-KITAB
             </h3>
           </a>
         </div>
@@ -22,10 +29,8 @@ const Header = () => {
           <a>Contact us</a>
         </div>
         <div className="buttons">
-          <Link to="/login">
-            <button className="login-button">Login</button>
-          </Link>
-          <button className="register-button">Register</button>
+            <button onClick={nagigate_to_login_page} className="login-button">Login</button>
+            <button onClick={nagigate_to_register_page} className="register-button">Register</button>
         </div>
       </div>
 

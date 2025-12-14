@@ -93,6 +93,7 @@ body {
   justify-content: center;
   align-items: center;
   gap: 5px;
+  font-weight: 600;
 }
 
 .logo {
@@ -199,7 +200,14 @@ header .register-button {
   transition: transform 0.3s ease;
   min-width: 80px;
 }
+.login-button:hover {
+  transform: scale(1.2);
+}
 
+.register-button:hover {
+  transform: scale(1.2);
+  background-color: white;
+}
 .user {
   border-radius: 50%;
   background-color: #1314d7;
@@ -250,6 +258,7 @@ header .register-button {
 .hero h3 {
   width: 400px;
   font-size: 30px;
+  font-weight: bold;
 }
 
 .hero .p {
@@ -261,9 +270,10 @@ header .register-button {
   color: #f3a109;
 }
 
-.heroinfo {
+.hero-info {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 
 .hero .search {
@@ -314,13 +324,7 @@ header .register-button {
   height: 100%;
 }
 
-.login-button:hover {
-  transform: scale(1.2);
-}
 
-.register-button:hover {
-  transform: scale(1.2);
-}
 
 /* ============================================================ */
 /* SERVICES SECTION */
@@ -339,6 +343,7 @@ header .register-button {
 .services-section h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 
 .services-section span {
@@ -382,6 +387,9 @@ header .register-button {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   padding: 10px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .service-card .content .icon {
@@ -414,6 +422,7 @@ header .register-button {
 .popular-books h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 
 .popular-books span {
@@ -424,6 +433,7 @@ header .register-button {
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   padding: 20px;
   background-color: white;
   border-radius: 5px;
@@ -507,6 +517,7 @@ header .register-button {
 .category-section {
   display: flex;
   flex-direction: column;
+  gap: 40px;
   align-items: center;
   justify-content: center;
   padding: 50px;
@@ -521,6 +532,7 @@ header .register-button {
 .category-section h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 
 .category-section .categorys {
@@ -614,7 +626,7 @@ header .register-button {
 footer {
   display: flex;
   flex-direction: column;
-  gap: 10;
+  gap: 20px;
   padding: 20px 50px;
   background: linear-gradient(to bottom, #e3e3fd, #e2dad8);
   margin: 0;
@@ -622,6 +634,10 @@ footer {
 
 footer span {
   color: #f3a109;
+}
+footer h1{
+  font-weight: 600;
+  font-size: 20px;
 }
 
 .footer-content {

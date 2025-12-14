@@ -11,7 +11,7 @@ const Header = () => {
         <div className="website-title">
           <img className="logo" src="./dz-kitablogo.png"></img>
           <a className="a">
-            <h3>
+            <h3 className=" ">
               <span>DZ</span>-KITAB
             </h3>
           </a>

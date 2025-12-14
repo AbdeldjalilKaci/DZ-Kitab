@@ -1,5 +1,6 @@
 /*! tailwindcss v4.1.18 | MIT License | https://tailwindcss.com */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@layer properties;
 @layer theme, base, components, utilities;
 @layer theme {
   :root, :host {
@@ -7,6 +8,12 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
+    --color-amber-300: oklch(87.9% 0.169 91.605);
+    --color-amber-400: oklch(82.8% 0.189 84.429);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
   }
@@ -159,7 +166,73 @@
     display: none !important;
   }
 }
-@layer utilities;
+@layer utilities {
+  .container {
+    width: 100%;
+    @media (width >= 40rem) {
+      max-width: 40rem;
+    }
+    @media (width >= 48rem) {
+      max-width: 48rem;
+    }
+    @media (width >= 64rem) {
+      max-width: 64rem;
+    }
+    @media (width >= 80rem) {
+      max-width: 80rem;
+    }
+    @media (width >= 96rem) {
+      max-width: 96rem;
+    }
+  }
+  .flex {
+    display: flex;
+  }
+  .table {
+    display: table;
+  }
+  .border-collapse {
+    border-collapse: collapse;
+  }
+  .transform {
+    transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
+  }
+  .resize {
+    resize: both;
+  }
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  .border {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .bg-amber-400 {
+    background-color: var(--color-amber-400);
+  }
+  .text-3xl {
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
+  }
+  .text-amber-300 {
+    color: var(--color-amber-300);
+  }
+  .underline {
+    text-decoration-line: underline;
+  }
+  .outline {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+  .filter {
+    filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
+  }
+  .transition {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to, opacity, box-shadow, transform, translate, scale, rotate, filter, -webkit-backdrop-filter, backdrop-filter, display, content-visibility, overlay, pointer-events;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+}
 body {
   margin: 0;
   min-height: 100vh;
@@ -231,6 +304,7 @@ body {
   justify-content: center;
   align-items: center;
   gap: 5px;
+  font-weight: 600;
 }
 .logo {
   width: 30px;
@@ -322,6 +396,13 @@ header .register-button {
   transition: transform 0.3s ease;
   min-width: 80px;
 }
+.login-button:hover {
+  transform: scale(1.2);
+}
+.register-button:hover {
+  transform: scale(1.2);
+  background-color: white;
+}
 .user {
   border-radius: 50%;
   background-color: #1314d7;
@@ -364,6 +445,7 @@ header .register-button {
 .hero h3 {
   width: 400px;
   font-size: 30px;
+  font-weight: bold;
 }
 .hero .p {
   color: #2c2b2b;
@@ -372,9 +454,10 @@ header .register-button {
 .hero span {
   color: #f3a109;
 }
-.heroinfo {
+.hero-info {
   display: flex;
   flex-direction: column;
+  gap: 20px;
 }
 .hero .search {
   position: relative;
@@ -419,12 +502,6 @@ header .register-button {
   width: 100%;
   height: 100%;
 }
-.login-button:hover {
-  transform: scale(1.2);
-}
-.register-button:hover {
-  transform: scale(1.2);
-}
 .services-section {
   display: flex;
   flex-direction: column;
@@ -438,6 +515,7 @@ header .register-button {
 .services-section h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 .services-section span {
   color: #f3a109;
@@ -476,6 +554,9 @@ header .register-button {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   padding: 10px;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 .service-card .content .icon {
   font-size: 20px;
@@ -500,6 +581,7 @@ header .register-button {
 .popular-books h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 .popular-books span {
   color: #f3a109;
@@ -508,6 +590,7 @@ header .register-button {
   position: relative;
   display: flex;
   flex-direction: column;
+  gap: 10px;
   padding: 20px;
   background-color: white;
   border-radius: 5px;
@@ -577,6 +660,7 @@ header .register-button {
 .category-section {
   display: flex;
   flex-direction: column;
+  gap: 40px;
   align-items: center;
   justify-content: center;
   padding: 50px;
@@ -589,6 +673,7 @@ header .register-button {
 .category-section h3 {
   font-size: 25px;
   text-align: center;
+  font-weight: bold;
 }
 .category-section .categorys {
   position: relative;
@@ -666,13 +751,17 @@ header .register-button {
 footer {
   display: flex;
   flex-direction: column;
-  gap: 10;
+  gap: 20px;
   padding: 20px 50px;
   background: linear-gradient(to bottom, #e3e3fd, #e2dad8);
   margin: 0;
 }
 footer span {
   color: #f3a109;
+}
+footer h1 {
+  font-weight: 600;
+  font-size: 20px;
 }
 .footer-content {
   display: flex;
@@ -1140,5 +1229,114 @@ footer p {
   }
   .notfound-page p {
     font-size: 20px;
+  }
+}
+@property --tw-rotate-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-rotate-z {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-x {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-skew-y {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-border-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
+@property --tw-blur {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-brightness {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-contrast {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-grayscale {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-hue-rotate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-invert {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-opacity {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-saturate {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-sepia {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-color {
+  syntax: "*";
+  inherits: false;
+}
+@property --tw-drop-shadow-alpha {
+  syntax: "<percentage>";
+  inherits: false;
+  initial-value: 100%;
+}
+@property --tw-drop-shadow-size {
+  syntax: "*";
+  inherits: false;
+}
+@layer properties {
+  @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
+    *, ::before, ::after, ::backdrop {
+      --tw-rotate-x: initial;
+      --tw-rotate-y: initial;
+      --tw-rotate-z: initial;
+      --tw-skew-x: initial;
+      --tw-skew-y: initial;
+      --tw-border-style: solid;
+      --tw-outline-style: solid;
+      --tw-blur: initial;
+      --tw-brightness: initial;
+      --tw-contrast: initial;
+      --tw-grayscale: initial;
+      --tw-hue-rotate: initial;
+      --tw-invert: initial;
+      --tw-opacity: initial;
+      --tw-saturate: initial;
+      --tw-sepia: initial;
+      --tw-drop-shadow: initial;
+      --tw-drop-shadow-color: initial;
+      --tw-drop-shadow-alpha: 100%;
+      --tw-drop-shadow-size: initial;
+    }
   }
 }
