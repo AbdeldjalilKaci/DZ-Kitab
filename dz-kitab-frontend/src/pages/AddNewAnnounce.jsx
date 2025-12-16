@@ -96,7 +96,7 @@ function AddAnnounce() {
                             </div>
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add ISBN</label>
                             <input
                                 type="text"
@@ -108,7 +108,7 @@ function AddAnnounce() {
                             />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Title</label>
                             <input
                                 type="text"
@@ -120,7 +120,7 @@ function AddAnnounce() {
                             />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Description</label>
                             <textarea
                                 name="description"
@@ -137,7 +137,7 @@ function AddAnnounce() {
                 {step === 2 && (
 
                     <div className="form-step">
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Domain</label>
                             <input
                                 type="text"
@@ -148,7 +148,7 @@ function AddAnnounce() {
                                 required
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Publication Year</label>
                             <input
                                 type="number"
@@ -160,7 +160,7 @@ function AddAnnounce() {
                             />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Author</label>
                             <input
                                 type="text"
@@ -171,7 +171,7 @@ function AddAnnounce() {
                                 required
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Status</label>
                             <select
                                 name="status"
@@ -190,7 +190,7 @@ function AddAnnounce() {
 
                 {step === 3 && (
                     <div className="form-step">
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add ETA</label>
                             <input
                                 type="text"
@@ -200,7 +200,7 @@ function AddAnnounce() {
                                 onChange={handleInputChange}
                             />
                         </div>
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Pages Number</label>
                             <input
                                 type="number"
@@ -212,7 +212,7 @@ function AddAnnounce() {
                             />
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group-announce">
                             <label>Add Price</label>
                             <input
                                 type="text"
