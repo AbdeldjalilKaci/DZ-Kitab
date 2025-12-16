@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Register.css";
+import axios from 'axios'
 
 const Register = () => {
   const navigate = useNavigate();
@@ -16,16 +17,29 @@ const Register = () => {
     setAnimate(true);
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register submitted:", {
-      firstName,
-      lastName,
-      email,
-      university,
-      password,
-    });
-    // Add your registration logic here
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/auth/register", {
+        first_name: firstName,
+        last_name: lastName,
+        email: email,
+        password: password,
+        university: university,
+      });
+      alert('good job')
+      console.log(response.data)
+      setFirstName(''),
+      setLastName(''),
+      setEmail(''),
+      setPassword(''),
+      setUniversity('') 
+    } catch (error) {
+      if (error.response) {
+        console.log(error)
+      }
+    }
   };
 
   const handleLogIn = () => {

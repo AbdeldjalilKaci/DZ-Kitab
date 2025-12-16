@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "./Layout";
 import { Landingpage } from "./pages/LandingPage";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
+import Login from './pages/Login'
+import Register from './pages/Register'
 import { NotFound } from "./NotFound";
 import "./App.css";
 export default function App() {

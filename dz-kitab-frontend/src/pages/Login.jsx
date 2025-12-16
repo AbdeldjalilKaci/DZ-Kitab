@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
-import axios from 'axios';
+import axios from 'axios'
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -16,13 +16,23 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login submitted:", { email, password, rememberMe });
-    try{
-      const response = await axios.post('',{
-
-      })
-    }catch(error){
-
+    // console.log("Login submitted:", { email, password, rememberMe });
+    try {
+      const response = await axios.post('http://localhost:8000/auth/login', {
+        email,
+        password
+      },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            // 
+          },
+          withCredentials: true,
+        })
+      alert('login success');
+      console.log(response.data)
+    } catch (error) {
+      console.log(error)
     }
   };
 
