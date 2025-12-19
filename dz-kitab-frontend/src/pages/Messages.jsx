@@ -1,6 +1,6 @@
 // Messages.jsx - Page de messagerie
 import React, { useState } from 'react';
-import './Messages.css';
+import './messages.css';
 import { MessageCard } from '../components/message-card';
 
 const Messages = () => {
