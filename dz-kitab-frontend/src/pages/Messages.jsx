@@ -65,8 +65,44 @@ const Messages = () => {
     const activeConversation = conversations[activeChat];
 
     return (
-        <div className="flex text-[Poppins]  ">
-            {/* <h1 className="page-title">Messages</h1>
+        <div className="flex text-[Poppins] justify-between  ">
+            <div className="">
+                <h2 className=' text-3xl font-bold ' >Messages</h2>
+                <div className="">
+                    <input type='search' placeholder='Search' className='search-message'/>
+                </div>
+                <p>Recent Conversations</p>
+                <div className=" bg-amber-700 ">
+                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
+                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
+                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
+                </div>
+            </div>
+            <div className="">
+                <div className="">
+                    <div className="">
+                        <img></img>
+                    </div>
+                    <div className="flex gap-10 items-center  ">
+                        <p className=' ' >Karim Benali</p>
+                        <p>On ligne</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Messages; 
+
+
+
+
+
+
+
+
+{/* <h1 className="page-title">Messages</h1>
             <div className="messages-container">
                 <div className="conversations-sidebar">
                     <div className="search-bar">
@@ -151,31 +187,3 @@ const Messages = () => {
                     </form>
                 </div>
             </div> */}
-            <div className="">
-                <h2 className=' text-3xl font-bold ' >Messages</h2>
-                <div className="">
-                    <input type='search' placeholder='Search' className='search-message'/>
-                </div>
-                <p>Recent Conversations</p>
-                <div className=" bg-amber-700 ">
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                </div>
-            </div>
-            <div className="">
-                <div className="">
-                    <div className="">
-                        <img></img>
-                    </div>
-                    <div className="">
-                        <p className=' ' >Karim Benali</p>
-                        <p>On ligne</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default Messages; 

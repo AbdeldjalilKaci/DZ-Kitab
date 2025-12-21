@@ -8,11 +8,8 @@
       "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
-    --color-amber-300: oklch(87.9% 0.169 91.605);
     --color-amber-700: oklch(55.5% 0.163 48.998);
     --spacing: 0.25rem;
-    --text-2xl: 1.5rem;
-    --text-2xl--line-height: calc(2 / 1.5);
     --text-3xl: 1.875rem;
     --text-3xl--line-height: calc(2.25 / 1.875);
     --font-weight-bold: 700;
@@ -189,11 +186,14 @@
       max-width: 96rem;
     }
   }
-  .mt-16 {
-    margin-top: calc(var(--spacing) * 16);
+  .mx-40 {
+    margin-inline: calc(var(--spacing) * 40);
   }
-  .mt-20 {
-    margin-top: calc(var(--spacing) * 20);
+  .mr-50 {
+    margin-right: calc(var(--spacing) * 50);
+  }
+  .ml-10 {
+    margin-left: calc(var(--spacing) * 10);
   }
   .flex {
     display: flex;
@@ -213,6 +213,15 @@
   .flex-wrap {
     flex-wrap: wrap;
   }
+  .items-center {
+    align-items: center;
+  }
+  .justify-between {
+    justify-content: space-between;
+  }
+  .gap-10 {
+    gap: calc(var(--spacing) * 10);
+  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -220,27 +229,8 @@
   .bg-amber-700 {
     background-color: var(--color-amber-700);
   }
-  .p-\[40px\] {
-    padding: 40px;
-  }
-  .px-10 {
-    padding-inline: calc(var(--spacing) * 10);
-  }
   .px-40 {
     padding-inline: calc(var(--spacing) * 40);
-  }
-  .px-\[40px\] {
-    padding-inline: 40px;
-  }
-  .py-7 {
-    padding-block: calc(var(--spacing) * 7);
-  }
-  .py-40 {
-    padding-block: calc(var(--spacing) * 40);
-  }
-  .text-2xl {
-    font-size: var(--text-2xl);
-    line-height: var(--tw-leading, var(--text-2xl--line-height));
   }
   .text-3xl {
     font-size: var(--text-3xl);
@@ -252,9 +242,6 @@
   }
   .text-\[Poppins\] {
     color: Poppins;
-  }
-  .text-amber-300 {
-    color: var(--color-amber-300);
   }
   .underline {
     text-decoration-line: underline;

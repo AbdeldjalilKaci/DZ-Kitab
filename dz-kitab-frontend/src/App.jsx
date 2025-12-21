@@ -7,6 +7,7 @@ import { NotFound } from "./NotFound";
 import AddAnnounce from './pages/AddNewAnnounce'
 import Messages from "./pages/Messages";
 import "./App.css";
+import './output.css'
 export default function App() {
   return (
     <Routes>
