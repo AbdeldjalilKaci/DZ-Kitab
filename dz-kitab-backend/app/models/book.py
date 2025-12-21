@@ -65,11 +65,16 @@ class Announcement(Base):
     views_count = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+    ratings = relationship("Rating", back_populates="announcement")
     # Relationships
     book = relationship("Book", back_populates="announcements")
     user = relationship("User", back_populates="announcements")
     condition_score = relationship("BookConditionScore", back_populates="announcement", uselist=False)
-
+# Dans la classe Announcement
+    ratings = relationship(
+    "Rating",
+    back_populates="announcement",
+    cascade="all, delete-orphan"
+)
     def __repr__(self):
         return f"<Announcement(id={self.id}, book_id={self.book_id}, price={self.price})>"
