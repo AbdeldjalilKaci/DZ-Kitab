@@ -1,5 +1,4 @@
-@"
-# Python
+﻿# Python
 __pycache__/
 *.pyc
 *.pyo
@@ -37,4 +36,3 @@ Thumbs.db
 
 # Logs
 *.log
-"@ | Out-File -FilePath .gitignore -Encoding utf8

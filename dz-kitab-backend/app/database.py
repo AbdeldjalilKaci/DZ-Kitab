@@ -1,10 +1,11 @@
+# app/database.py
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
 
-# URL de connexion - utilise celle de docker-compose
-DATABASE_URL = "postgresql://admin:password@database:5432/dz_kitab"
+# URL de connexion - doit correspondre à docker-compose.yml
+DATABASE_URL = "postgresql://admin:admin123@database:5432/dz_kitab"
 
 # Créer le moteur SQLAlchemy
 engine = create_engine(DATABASE_URL)

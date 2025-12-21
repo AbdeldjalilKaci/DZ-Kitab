@@ -1,22 +1,23 @@
 from passlib.context import CryptContext
-from datetime import timedelta
 from .jwt import create_access_token
 
-# Configuration bcrypt (nous le réinstallerons plus tard)
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(plain_password, hashed_password):
-    # Pour l'instant, utilisez SHA256 comme avant
-    import hashlib
-    hashed_input = hashlib.sha256(plain_password.encode()).hexdigest()
-    return hashed_input == hashed_password
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Verify that a plain password matches the hashed password"""
+    return pwd_context.verify(plain_password, hashed_password)
 
-def get_password_hash(password):
-    import hashlib
-    return hashlib.sha256(password.encode()).hexdigest()
+def get_password_hash(password: str) -> str:
+    """Hash the password using bcrypt (max 72 bytes)"""
+    # Bcrypt only supports passwords up to 72 bytes
+    password_bytes = password.encode('utf-8')
+    if len(password_bytes) > 72:
+        # Truncate to 72 bytes
+        password = password_bytes[:72].decode('utf-8', errors='ignore')
+    return pwd_context.hash(password)
 
-def create_user_token(user_id: int, email: str):
-    # Créer un token JWT pour l'utilisateur
+def create_user_token(user_id: int, email: str) -> str:
+    """Generate JWT access token for the user"""
     access_token = create_access_token(
         data={"sub": email, "user_id": user_id}
     )

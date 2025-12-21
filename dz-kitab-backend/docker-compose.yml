@@ -1,26 +1,43 @@
-services:
-  backend:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://admin:password@database:5432/dz_kitab
-    depends_on:
-      - database
-    volumes:
-      - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+version: "3.9"
 
+services:
   database:
     image: postgres:15
+    container_name: dz-kitab-db
     environment:
-      POSTGRES_DB: dz_kitab
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: dz_kitab
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dzkitab-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d dz_kitab"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    container_name: dz-kitab-backend
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - dzkitab-network
+    environment:
+      - DATABASE_URL=postgresql://admin:admin123@database:5432/dz_kitab
 
 volumes:
   postgres_data:
+
+networks:
+  dzkitab-network:
