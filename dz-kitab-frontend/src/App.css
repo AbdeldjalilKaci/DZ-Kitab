@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -41,7 +42,7 @@ body {
 }
 
 .notfound-page p {
- 
+
   font-size: 40px;
   font-weight: bold;
   text-align: center;
@@ -136,7 +137,7 @@ header .a:hover {
   color: black;
   cursor: pointer;
 }
- 
+
 
 header a {
   position: relative;
@@ -233,10 +234,12 @@ header .login-button:hover,
 header .register-button:hover {
   transform: scale(1.2);
 }
+
 header .register-button:hover {
   transform: scale(1.2);
   background-color: white;
 }
+
 .user {
   border-radius: 50%;
   background-color: #1314d7;
@@ -283,19 +286,22 @@ header .register-button:hover {
   position: relative;
   margin: 0;
 }
-.hero button{
+
+.hero button {
   width: 150px;
   height: 50px;
   background-color: #f3a109;
   color: white;
-  border-radius: 5px; 
-  border: none;  
+  border-radius: 5px;
+  border: none;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
-.hero button:hover{
+
+.hero button:hover {
   transform: scale(1.2);
 }
+
 .hero-img {
   position: absolute;
   width: 100%;
@@ -304,20 +310,20 @@ header .register-button:hover {
 }
 
 .hero h3 {
-  width: 400px;
-  font-size: 30px;
+  width: 100%;
+  max-width: 600px;
+  font-size: clamp(24px, 5vw, 42px);
   font-weight: bold;
   color: white;
+  line-height: 1.2;
 }
 
 .hero .p {
-  color: #000000;
-  width: 500px;
+  color: #e5e7eb;
+  width: 100%;
+  max-width: 600px;
+  font-size: clamp(16px, 3vw, 18px);
 }
-
-/* .hero span {
-  color: #f3a109;
-} */
 
 .hero-info {
   display: flex;
@@ -612,7 +618,7 @@ header .register-button:hover {
   gap: 30px;
 }
 
- .category-card {
+.category-card {
   width: 250px;
   height: 200px;
   border-radius: 5px;
@@ -703,7 +709,8 @@ footer {
 footer span {
   color: #f3a109;
 }
-footer h1{
+
+footer h1 {
   font-weight: 600;
   font-size: 20px;
 }
@@ -795,7 +802,7 @@ footer p {
   .services-section .p {
     max-width: 700px;
   }
-  
+
   .service-card {
     max-width: 320px;
   }
@@ -1005,12 +1012,12 @@ footer p {
     align-items: center;
     text-align: center;
   }
-  
+
   .services-section h3 {
     text-align: center;
     font-size: 32px;
   }
-  
+
   .services-section .services-cards {
     justify-content: center;
     gap: 25px;
@@ -1021,7 +1028,7 @@ footer p {
     max-width: 350px;
     min-height: 300px;
   }
-  
+
   .service-image-wrapper {
     height: 190px;
   }
@@ -1199,12 +1206,12 @@ footer p {
     align-items: center;
     text-align: center;
   }
-  
+
   .services-section h3 {
     text-align: center;
     font-size: 28px;
   }
-  
+
   .services-section .services-cards {
     flex-direction: column;
     align-items: center;
@@ -1216,7 +1223,7 @@ footer p {
     max-width: 100%;
     min-height: 280px;
   }
-  
+
   .service-image-wrapper {
     height: 180px;
   }
