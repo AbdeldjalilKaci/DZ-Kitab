@@ -498,6 +498,9 @@
 .text-gray-500 {
     color: #6b7280;
 }
+.price-row {
+ margin-bottom: 1rem;   
+}
 
 @media (max-width: 600px) {
     .grid-cols-2 {
@@ -505,7 +508,6 @@
     }
 }
 
-/* Manual Cover Upload */
 .col-span-2 {
     grid-column: span 2;
 }

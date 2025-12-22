@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import './addnewannouce.css';
 import { FaSearch, FaBook, FaCheckCircle, FaCamera, FaRobot, FaArrowRight, FaArrowLeft, FaBarcode, FaUpload } from 'react-icons/fa';
 import { MdVerified, MdWarning } from 'react-icons/md';
@@ -10,6 +11,7 @@ function AddAnnounce() {
     const [isbn, setIsbn] = useState('');
     const [bookFound, setBookFound] = useState(false);
     const [manualEntry, setManualEntry] = useState(false);
+    const [categories, setCategories] = useState([]);
     const [bookDetails, setBookDetails] = useState({
         title: '',
         authors: [],
@@ -18,47 +20,61 @@ function AddAnnounce() {
         categories: [],
         description: '',
         thumbnail: '',
-        publisher: ''
+        publisher: '',
+        basePrice: ''
     });
 
     const initialScoring = {
         page: {
-            missing: false,
-            torn: false,
-            stained: false,
-            score: 0
+            page_no_missing: true,
+            page_no_torn: true,
+            page_clean: true,
+            page_score: 100
         },
         binding: {
-            loose: false,
-            detached: false,
-            score: 0
+            binding_no_loose: true,
+            binding_no_falling: true,
+            binding_stable: true,
+            binding_score: 100
         },
         cover: {
-            dirty: false,
-            scratched: false,
-            detached: false,
-            score: 0
+            cover_no_detachment: true,
+            cover_clean: true,
+            cover_no_scratches: true,
+            cover_score: 100
         },
         damages: {
-            burns: false,
-            smell: false,
-            insects: false,
-            score: 0
+            damage_no_burns: true,
+            damage_no_smell: true,
+            damage_no_insects: true,
+            damage_score: 100
         },
         accessories: {
-            complete: true,
-            extras: false,
-            score: 0
+            accessories_complete: true,
+            accessories_content: true,
+            accessories_extras: false,
+            accessories_score: 100
         }
     };
     const [scoringData, setScoringData] = useState(initialScoring);
-    const [overallScore, setOverallScore] = useState(10);
+    const [overallScore, setOverallScore] = useState(100);
 
     const [photos, setPhotos] = useState([]);
     const [price, setPrice] = useState('');
     const [analyzing, setAnalyzing] = useState(false);
     const [analysisResult, setAnalysisResult] = useState(null);
 
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/categories');
+                setCategories(response.data);
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const fetchBookDetails = async () => {
         if (!isbn) return;
@@ -91,6 +107,14 @@ function AddAnnounce() {
         }
     };
 
+    useEffect(() => {
+        const isStateValid = scoringData?.page && 'page_no_missing' in scoringData.page;
+        if (!isStateValid) {
+            console.log("Resetting state due to schema mismatch");
+            setScoringData(initialScoring);
+        }
+    }, [scoringData]);
+
     const handleScoreChange = (category, field) => {
         setScoringData(prev => ({
             ...prev,
@@ -102,28 +126,54 @@ function AddAnnounce() {
     };
 
     useEffect(() => {
-        let score = 100;
+        if (!scoringData || !scoringData.page || typeof scoringData.page.page_no_missing === 'undefined') return;
 
-        if (scoringData.page.missing) score -= 40;
-        if (scoringData.page.torn) score -= 15;
-        if (scoringData.page.stained) score -= 10;
+        let pScore = 0;
+        if (scoringData.page.page_no_missing) pScore += 40;
+        if (scoringData.page.page_no_torn) pScore += 30;
+        if (scoringData.page.page_clean) pScore += 30;
 
-        if (scoringData.binding.loose) score -= 15;
-        if (scoringData.binding.detached) score -= 30;
+        let bScore = 0;
+        if (scoringData.binding.binding_no_loose) bScore += 40;
+        if (scoringData.binding.binding_no_falling) bScore += 40;
+        if (scoringData.binding.binding_stable) bScore += 20;
 
-        if (scoringData.cover.dirty) score -= 5;
-        if (scoringData.cover.scratched) score -= 5;
-        if (scoringData.cover.detached) score -= 20;
+        let cScore = 0;
+        if (scoringData.cover.cover_no_detachment) cScore += 50;
+        if (scoringData.cover.cover_clean) cScore += 25;
+        if (scoringData.cover.cover_no_scratches) cScore += 25;
 
-        if (scoringData.damages.burns) score -= 50;
-        if (scoringData.damages.smell) score -= 20;
-        if (scoringData.damages.insects) score -= 80;
+        let dScore = 0;
+        if (scoringData.damages.damage_no_burns) dScore += 40;
+        if (scoringData.damages.damage_no_smell) dScore += 30;
+        if (scoringData.damages.damage_no_insects) dScore += 30;
 
-        if (!scoringData.accessories.complete) score -= 10;
-        if (scoringData.accessories.extras) score += 5;
+        let aScore = 0;
+        if (scoringData.accessories.accessories_complete) aScore += 50;
+        if (scoringData.accessories.accessories_content) aScore += 50;
 
-        setOverallScore(Math.max(0, Math.min(100, score)));
-    }, [scoringData]);
+        const newOverall = Math.round((pScore + bScore + cScore + dScore + aScore) / 5);
+
+        if (
+            scoringData.page.page_score !== pScore ||
+            scoringData.binding.binding_score !== bScore ||
+            scoringData.cover.cover_score !== cScore ||
+            scoringData.damages.damage_score !== dScore ||
+            scoringData.accessories.accessories_score !== aScore ||
+            overallScore !== newOverall
+        ) {
+            setScoringData(prev => ({
+                ...prev,
+                page: { ...prev.page, page_score: pScore },
+                binding: { ...prev.binding, binding_score: bScore },
+                cover: { ...prev.cover, cover_score: cScore },
+                damages: { ...prev.damages, damage_score: dScore },
+                accessories: { ...prev.accessories, accessories_score: aScore }
+            }));
+            setOverallScore(newOverall);
+        }
+
+    }, [scoringData, overallScore]);
 
     const handlePhotoUpload = (e) => {
         const files = Array.from(e.target.files);
@@ -162,16 +212,17 @@ function AddAnnounce() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        const calculatedPrice = Math.floor((bookDetails.basePrice || 0) * (overallScore / 100));
         const finalData = {
             ...bookDetails,
             isbn,
             conditionScore: overallScore,
             scoringDetails: scoringData,
-            price,
+            price: calculatedPrice,
             photos
         };
         console.log("Submitting:", finalData);
-        alert("Announcement Created! (Check console for data)");
+        alert(`Announcement Created for ${calculatedPrice} DZD! (Check console for data)`);
     };
 
 
@@ -192,7 +243,7 @@ function AddAnnounce() {
                 <div className="step-connector"></div>
                 <div className={`step-item ${step >= 3 ? 'completed' : ''} ${step === 3 ? 'active' : ''}`}>
                     <div className="step-number">3</div>
-                    <span className="step-label">Photos & Price</span>
+                    <span className="step-label">Photos & Confirm</span>
                 </div>
             </div>
 
@@ -264,15 +315,31 @@ function AddAnnounce() {
                                             value={bookDetails.pageCount}
                                             onChange={(e) => setBookDetails({ ...bookDetails, pageCount: e.target.value })}
                                             placeholder="e.g. 300"
+                                            required
                                         />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium mb-1">Category</label>
-                                        <input
+                                        <select
                                             className="modern-input"
                                             value={bookDetails.categories[0] || ''}
                                             onChange={(e) => setBookDetails({ ...bookDetails, categories: [e.target.value] })}
-                                            placeholder="e.g. Fiction"
+                                        >
+                                            <option value="" disabled>Select a category</option>
+                                            {categories.map((cat, index) => (
+                                                <option key={index} value={cat.name || cat}>{cat.name || cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium mb-1">Market Price (DZD)</label>
+                                        <input
+                                            type="number"
+                                            className="modern-input"
+                                            value={bookDetails.basePrice}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, basePrice: e.target.value })}
+                                            placeholder="e.g. 1500"
+                                            required
                                         />
                                     </div>
                                     <div>
@@ -324,7 +391,18 @@ function AddAnnounce() {
                                     <p><strong>Author:</strong> {bookDetails.authors.join(', ')}</p>
                                     <p><strong>Publisher:</strong> {bookDetails.publisher} ({bookDetails.publishedDate})</p>
                                     <p><strong>Pages:</strong> {bookDetails.pageCount}</p>
-                                    <span className="badge-category">{bookDetails.categories[0]}</span>
+                                    <div className="mt-2">
+                                        <label className="block text-sm font-medium mb-1 text-gray-700">Market Price (DZD)</label>
+                                        <input
+                                            type="number"
+                                            className="modern-input"
+                                            value={bookDetails.basePrice || ''}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, basePrice: e.target.value })}
+                                            placeholder="Enter market price"
+                                            required
+                                        />
+                                    </div>
+                                    <span className="badge-category mt-2">{bookDetails.categories[0]}</span>
                                 </div>
                             </div>
                         )}
@@ -355,36 +433,79 @@ function AddAnnounce() {
                             </div>
                         </div>
 
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 text-center transform transition-all duration-300 hover:shadow-md price-row ">
+                            <div className="flex justify-around items-center mb-2">
+                                <div className="text-center">
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Market Price (DZD)</p>
+                                    <input
+                                        type="number"
+                                        className="text-xl font-bold text-gray-700 text-center w-32 bg-white border border-gray-300 rounded-md p-1"
+                                        value={bookDetails.basePrice}
+                                        onChange={(e) => setBookDetails({ ...bookDetails, basePrice: e.target.value })}
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-gray-500 text-xs uppercase tracking-wide mb-1">Condition Impact</p>
+                                    <p className={`text-xl font-bold ${overallScore > 70 ? 'text-green-600' : 'text-orange-500'}`}>{overallScore}%</p>
+                                </div>
+                            </div>
+                            <div className="border-t border-blue-100 pt-3 mt-2">
+                                <p className="text-[#134BD7] text-sm font-bold uppercase tracking-wide mb-1">Suggested Selling Price</p>
+                                <div className="flex items-center justify-center gap-2">
+                                    <span className="text-4xl font-extrabold text-[#134BD7] drop-shadow-sm">
+                                        {Math.floor((bookDetails.basePrice || 0) * (overallScore / 100))}
+                                    </span>
+                                    <span className="text-xl font-bold text-gray-500 self-end mb-2">DZD</span>
+                                </div>
+                                <p className="text-xs text-gray-400 mt-1">based on market price & condition</p>
+                            </div>
+                        </div>
+
                         <div className="scoring-grid">
                             <div className="score-category">
-                                <h3>Page Quality</h3>
-                                <label><input type="checkbox" checked={!scoringData.page.missing} onChange={() => handleScoreChange('page', 'missing')} /> No missing pages</label>
-                                <label><input type="checkbox" checked={!scoringData.page.torn} onChange={() => handleScoreChange('page', 'torn')} /> No torn pages</label>
-                                <label><input type="checkbox" checked={!scoringData.page.stained} onChange={() => handleScoreChange('page', 'stained')} /> No stains</label>
+                                <div className="mb-2">
+                                    <h3>Page Quality</h3>
+                                </div>
+                                <label><input type="checkbox" checked={scoringData.page.page_no_missing} onChange={() => handleScoreChange('page', 'page_no_missing')} /> No missing pages</label>
+                                <label><input type="checkbox" checked={scoringData.page.page_no_torn} onChange={() => handleScoreChange('page', 'page_no_torn')} /> No torn pages</label>
+                                <label><input type="checkbox" checked={scoringData.page.page_clean} onChange={() => handleScoreChange('page', 'page_clean')} /> Pages are clean</label>
                             </div>
 
                             <div className="score-category">
-                                <h3>Binding</h3>
-                                <label><input type="checkbox" checked={!scoringData.binding.loose} onChange={() => handleScoreChange('binding', 'loose')} /> Tight binding</label>
-                                <label><input type="checkbox" checked={!scoringData.binding.detached} onChange={() => handleScoreChange('binding', 'detached')} /> Cover attached</label>
+                                <div className="mb-2">
+                                    <h3>Binding</h3>
+                                </div>
+                                <label><input type="checkbox" checked={scoringData.binding.binding_no_loose} onChange={() => handleScoreChange('binding', 'binding_no_loose')} /> No loose pages</label>
+                                <label><input type="checkbox" checked={scoringData.binding.binding_no_falling} onChange={() => handleScoreChange('binding', 'binding_no_falling')} /> No falling pages</label>
+                                <label><input type="checkbox" checked={scoringData.binding.binding_stable} onChange={() => handleScoreChange('binding', 'binding_stable')} /> Binding is stable</label>
                             </div>
 
                             <div className="score-category">
-                                <h3>Cover</h3>
-                                <label><input type="checkbox" checked={!scoringData.cover.dirty} onChange={() => handleScoreChange('cover', 'dirty')} /> Clean cover</label>
-                                <label><input type="checkbox" checked={!scoringData.cover.scratched} onChange={() => handleScoreChange('cover', 'scratched')} /> No scratches</label>
+                                <div className="mb-2">
+                                    <h3>Cover</h3>
+                                </div>
+                                <label><input type="checkbox" checked={scoringData.cover.cover_no_detachment} onChange={() => handleScoreChange('cover', 'cover_no_detachment')} /> No detachment</label>
+                                <label><input type="checkbox" checked={scoringData.cover.cover_clean} onChange={() => handleScoreChange('cover', 'cover_clean')} /> Cover is clean</label>
+                                <label><input type="checkbox" checked={scoringData.cover.cover_no_scratches} onChange={() => handleScoreChange('cover', 'cover_no_scratches')} /> No scratches</label>
                             </div>
 
                             <div className="score-category">
-                                <h3>Major Damages</h3>
-                                <label><input type="checkbox" checked={!scoringData.damages.burns} onChange={() => handleScoreChange('damages', 'burns')} /> No burns</label>
-                                <label><input type="checkbox" checked={!scoringData.damages.smell} onChange={() => handleScoreChange('damages', 'smell')} /> No odors</label>
+                                <div className="mb-2">
+                                    <h3>Damages</h3>
+                                </div>
+                                <label><input type="checkbox" checked={scoringData.damages.damage_no_burns} onChange={() => handleScoreChange('damages', 'damage_no_burns')} /> No burns</label>
+                                <label><input type="checkbox" checked={scoringData.damages.damage_no_smell} onChange={() => handleScoreChange('damages', 'damage_no_smell')} /> No bad smell</label>
+                                <label><input type="checkbox" checked={scoringData.damages.damage_no_insects} onChange={() => handleScoreChange('damages', 'damage_no_insects')} /> No insect damage</label>
                             </div>
 
                             <div className="score-category">
-                                <h3>Accessories</h3>
-                                <label><input type="checkbox" checked={scoringData.accessories.complete} onChange={() => handleScoreChange('accessories', 'complete')} /> All accessories included</label>
-                                <label><input type="checkbox" checked={scoringData.accessories.extras} onChange={() => handleScoreChange('accessories', 'extras')} /> Has extras (bookmarks etc)</label>
+                                <div className="mb-2">
+                                    <h3>Accessories</h3>
+                                </div>
+                                <label><input type="checkbox" checked={scoringData.accessories.accessories_complete} onChange={() => handleScoreChange('accessories', 'accessories_complete')} /> Accessories complete</label>
+                                <label><input type="checkbox" checked={scoringData.accessories.accessories_content} onChange={() => handleScoreChange('accessories', 'accessories_content')} /> Content intact</label>
+                                <label><input type="checkbox" checked={scoringData.accessories.accessories_extras} onChange={() => handleScoreChange('accessories', 'accessories_extras')} /> Has extras</label>
                             </div>
                         </div>
 
@@ -397,7 +518,7 @@ function AddAnnounce() {
 
                 {step === 3 && (
                     <div className="step-content fade-in">
-                        <h2 className="section-title"><FaCamera /> Photos & Price</h2>
+                        <h2 className="section-title"><FaCamera /> Photos & Confirm</h2>
 
                         <div className="ia-promo">
                             <FaRobot className="ia-icon" />
@@ -434,18 +555,12 @@ function AddAnnounce() {
                             </div>
                         )}
 
-                        <div className="price-section flex gap-5 w-full ">
-                            <label className=' w-100 '>Set your price (DZD)</label>
-                            <input
-                                type="number"
-                                className="modern-input price-input w-100 h-15 border-none outline-none  "
-                                placeholder="0.00"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                            />
-                            {bookDetails.pageCount && (
-                                <p className="price-suggestion">Suggested price: {Math.floor(bookDetails.pageCount * 1.5)} - {Math.floor(bookDetails.pageCount * 2.5)} DZD</p>
-                            )}
+                        <div className="price-section flex flex-col items-center gap-3 w-full mb-6">
+                            <p className="text-gray-500">Final Selling Price</p>
+                            <div className="text-3xl font-bold text-[#134BD7]">
+                                {Math.floor((bookDetails.basePrice || 0) * (overallScore / 100))} DZD
+                            </div>
+                            <p className="text-sm text-gray-400">Calculated from Market Price ({bookDetails.basePrice} DZD) & Condition ({overallScore}%)</p>
                         </div>
 
                         <div className="  flex justify-between items-center gap-10  ">
