@@ -229,6 +229,16 @@ function AddAnnounce() {
                                 <h3 className="text-lg font-semibold mb-4">Manual Entry</h3>
                                 <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div>
+                                        <label className="block text-sm font-medium mb-1">ISBN</label>
+                                        <input
+                                            className="modern-input"
+                                            value={isbn}
+                                            onChange={(e) => setIsbn(e.target.value)}
+                                            placeholder="ISBN"
+                                            required
+                                        />
+                                    </div>
+                                    <div>
                                         <label className="block text-sm font-medium mb-1">Title</label>
                                         <input
                                             className="modern-input"
