@@ -24,7 +24,7 @@ const Header = () => {
           </a>
         </div>
         <div className="links">
-          <a href="/addannounce" >Home</a>
+          <a href="/addannounce">Home</a>
           <a href="/catalog">Catalog</a>
           <a>About us</a>
           <a href="#contact">Contact us</a>

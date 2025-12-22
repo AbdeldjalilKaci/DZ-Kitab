@@ -8,7 +8,7 @@ export const BookCard = ({ id, img, title, desc, price, buy_func }) => {
   const isWishlisted = isInWishlist(id);
 
   return (
-    <div className="book-card" style={{ position: "relative" }}>
+    <div className="card-book" style={{ position: "relative" ,background: "linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%)",}}>
       <button
         onClick={(e) => {
           e.stopPropagation();

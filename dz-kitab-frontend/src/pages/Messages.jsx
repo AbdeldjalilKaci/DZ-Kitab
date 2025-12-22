@@ -1,8 +1,6 @@
-// Messages.jsx - Page de messagerie
 import React, { useState } from 'react';
 import './messages.css';
-import { MessageCard } from '../components/message-card';
-
+import { CiSearch } from "react-icons/ci";
 const Messages = () => {
     const [activeChat, setActiveChat] = useState(0);
     const [newMessage, setNewMessage] = useState('');
@@ -11,7 +9,7 @@ const Messages = () => {
             id: 0,
             name: 'Karim Benali',
             initials: 'KB',
-            lastMessage: 'Oui, il est toujours...',
+            lastMessage: 'Oui, il est toujours lfohawifhrihgiehirusenfse ruivhsidhinvsien',
             time: '15:10',
             online: true,
             messages: [
@@ -33,7 +31,7 @@ const Messages = () => {
         {
             id: 2,
             name: 'Sami Kamel',
-            initials: 'KB', // Keeping KB as per visual if needed, but SK is correct. I will use KB to be "exactly" like the potential error or just use the color. Wait, I will use SK for correctness unless I am sure. Let's use darker yellow for all avatars.
+            initials: 'SK',
             lastMessage: 'Désolé je peut pas...',
             time: '09:30',
             online: true,
@@ -54,7 +52,7 @@ const Messages = () => {
             id: activeConv.messages.length + 1,
             text: newMessage,
             sender: 'me',
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
         };
 
         activeConv.messages.push(newMsg);
@@ -65,54 +63,16 @@ const Messages = () => {
     const activeConversation = conversations[activeChat];
 
     return (
-        <div className="flex text-[Poppins] justify-between  ">
-            <div className="">
-                <h2 className=' text-3xl font-bold ' >Messages</h2>
-                <div className="">
-                    <input type='search' placeholder='Search' className='search-message'/>
-                </div>
-                <p>Recent Conversations</p>
-                <div className=" bg-amber-700 ">
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                    <MessageCard name={'Karim Benali'} last_message={'Oui, il est toujours... '} time={'15:30'}/>
-                </div>
-            </div>
-            <div className="">
-                <div className="">
-                    <div className="">
-                        <img></img>
-                    </div>
-                    <div className="flex gap-10 items-center  ">
-                        <p className=' ' >Karim Benali</p>
-                        <p>On ligne</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
-
-export default Messages; 
-
-
-
-
-
-
-
-
-{/* <h1 className="page-title">Messages</h1>
+        <div className="messages-page">
             <div className="messages-container">
                 <div className="conversations-sidebar">
-                    <div className="search-bar">
-                        <div className="search-input">
-                            <input type="text" placeholder="Search" />
-                        </div>
+                    <h2 className="messages-title">Messages</h2>
+                    <div className="search-bar flex gap-2 ">
+                        <CiSearch />
+                        <input type="text" placeholder="Search" className=" h-full  outline-none border-0 focus:outline-none focus:border-0 " />
                     </div>
-
                     <div className="recent-conversations">
-                        <h3>Recent Conversations</h3>
+                        <h3 className="recent-title">Recent Conversations</h3>
                         <div className="conversations-list">
                             {conversations.map((conv) => (
                                 <div
@@ -122,43 +82,43 @@ export default Messages;
                                 >
                                     <div className="avatar">
                                         <span className="avatar-initials">{conv.initials}</span>
-                                        {conv.online && <span className="online-indicator"></span>}
                                     </div>
                                     <div className="conversation-info">
                                         <div className="conversation-header">
                                             <span className="conversation-name">{conv.name}</span>
                                             <span className="conversation-time">{conv.time}</span>
                                         </div>
-                                        <p className="last-message">{conv.lastMessage}</p>
+                                        <p className="last-message loading-dots ">{conv.lastMessage}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
- 
-                <div className="chat-area">
+
+                <div className="chat-area relative rounded-tl-[10px] ">
+                <div className="absolute left-0 top-0 h-full w-1 rounded-tr-[10px]  bg-linear-to-b from-[#e3e3fd]  to-[#e2dad8]"></div>
                     <div className="chat-header">
                         <div className="chat-contact-info">
                             <div className="contact-avatar">
                                 <span className="avatar-initials">{activeConversation.initials}</span>
-                                {activeConversation.online && <span className="online-indicator"></span>}
                             </div>
                             <div className="contact-details">
                                 <h3>{activeConversation.name}</h3>
-                                {activeConversation.online && <span className="contact-status">● En ligne</span>}
+                                {activeConversation.online && (
+                                    <span className="contact-status">
+                                        <span className="online-dot"></span> En ligne
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
 
                     <div className="chat-security-banner">
-                        <p>Conversation sécurisée – Email masqué</p>
+                        <p>Conversation sécurisée - Email masqué</p>
                     </div>
 
                     <div className="messages-list">
-                        <div className="date-divider">
-                            <span>{activeConversation.name}</span>
-                        </div>
                         {activeConversation.messages.map((msg) => (
                             <div
                                 key={msg.id}
@@ -179,6 +139,7 @@ export default Messages;
                                 placeholder="Taper pour ecrire..."
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
+                                className="message-input"
                             />
                             <button type="submit" className="send-button">
                                 Envoyer
@@ -186,4 +147,9 @@ export default Messages;
                         </div>
                     </form>
                 </div>
-            </div> */}
+            </div>
+        </div>
+    );
+};
+
+export default Messages;

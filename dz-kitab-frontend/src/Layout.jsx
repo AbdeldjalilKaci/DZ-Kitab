@@ -1,11 +1,14 @@
 import Footer from "./components/footer";
 import Header from "./components/header";
 import { Outlet, useLocation } from "react-router-dom";
-
+import "./style.css";
+import "../src/style.css";
+import "./App.css";
 export default function Layout() {
     const location = useLocation();
 
     const hideOnPages = [
+        "*",
         "/login", 
         "/register", 
     ];
