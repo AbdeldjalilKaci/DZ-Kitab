@@ -23,14 +23,14 @@ class User(Base):
     last_name = Column(String, nullable=True)
     university = Column(Enum(UniversityEnum), nullable=True)
     phone_number = Column(String, nullable=True)
-    is_active = Column(Boolean, default=True)
+    is_active = Column(Boolean, default=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationship with announcements
+    # Relationships
     announcements = relationship("Announcement", back_populates="user", cascade="all, delete-orphan")
 
-    # Relations pour les ratings
+    # Rating relationships
     ratings_given = relationship(
         "Rating",
         foreign_keys="Rating.buyer_id",
@@ -52,18 +52,33 @@ class User(Base):
         cascade="all, delete-orphan"
     )
 
-    # Relations pour les suspensions (à implémenter plus tard)
-    # suspensions = relationship(
-    #     "UserSuspension",
-    #     back_populates="user",
-    #     cascade="all, delete-orphan"
-    # )
+    # Notification relationships
+    notifications = relationship(
+        "Notification",
+        foreign_keys="Notification.user_id",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+    
+    notification_preferences = relationship(
+        "NotificationPreference",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan"
+    )
 
-    # rating_alerts = relationship(
-    #     "RatingAlert",
-    #     back_populates="user",
-    #     cascade="all, delete-orphan"
-    # )
+    # Suspension relationships
+    suspensions = relationship(
+        "UserSuspension",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
+
+    rating_alerts = relationship(
+        "RatingAlert",
+        back_populates="user",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"
