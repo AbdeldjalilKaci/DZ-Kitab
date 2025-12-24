@@ -48,11 +48,11 @@ def evaluate_book_condition(
     user_id: int = Depends(get_current_user_id)
 ):
     """
-    Évaluer l'état du livre avec le système de scoring détaillé
+    Évaluer l'état du livre et calculer le prix final
     
     - Répond à 15 questions réparties en 5 catégories
-    - Calcule automatiquement le score global
-    - Suggère un prix basé sur l'état
+    - Calcule automatiquement le score global (0-100%)
+    - Calcule le prix final: market_price × (overall_score / 100)
     """
     # Vérifier que l'annonce existe et appartient à l'utilisateur
     announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
@@ -112,11 +112,21 @@ def evaluate_book_condition(
         condition_score.photo_urls = condition_data.photo_urls
     
     # Calculer tous les scores
-    condition_score.calculate_scores()
+    overall_score = condition_score.calculate_scores()
     
-    # Suggérer un prix si un prix de base est fourni
-    if condition_data.base_price:
-        condition_score.suggest_price(condition_data.base_price)
+    # Utiliser le market_price de l'annonce ou celui fourni
+    market_price = condition_data.market_price or announcement.market_price
+    
+    if market_price:
+        # Calcul du prix final: market_price * (overall_score / 100)
+        final_price = round(market_price * (overall_score / 100), 2)
+        
+        condition_score.base_price = market_price
+        condition_score.suggested_price = final_price
+        
+        # Mettre à jour l'annonce avec le prix calculé
+        announcement.market_price = market_price
+        announcement.final_calculated_price = final_price
     
     # Sauvegarder
     if not existing_score:
@@ -124,6 +134,7 @@ def evaluate_book_condition(
     
     db.commit()
     db.refresh(condition_score)
+    db.refresh(announcement)
     
     # Calculer le multiplicateur pour la réponse
     multiplier = None
@@ -140,8 +151,8 @@ def evaluate_book_condition(
         accessories_score=condition_score.accessories_score,
         overall_score=condition_score.overall_score,
         condition_label=condition_score.condition_label,
-        base_price=condition_score.base_price,
-        suggested_price=condition_score.suggested_price,
+        market_price=condition_score.base_price,
+        final_calculated_price=announcement.final_calculated_price,
         price_multiplier=multiplier,
         has_photos=condition_score.has_photos,
         photo_urls=condition_score.photo_urls,
@@ -157,6 +168,14 @@ def get_condition_score(
     """
     Récupérer le score d'évaluation d'une annonce (public)
     """
+    announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annonce non trouvée"
+        )
+    
     condition_score = db.query(BookConditionScore).filter(
         BookConditionScore.announcement_id == announcement_id
     ).first()
@@ -181,8 +200,8 @@ def get_condition_score(
         accessories_score=condition_score.accessories_score,
         overall_score=condition_score.overall_score,
         condition_label=condition_score.condition_label,
-        base_price=condition_score.base_price,
-        suggested_price=condition_score.suggested_price,
+        market_price=condition_score.base_price,
+        final_calculated_price=announcement.final_calculated_price,
         price_multiplier=multiplier,
         has_photos=condition_score.has_photos,
         photo_urls=condition_score.photo_urls,
@@ -198,6 +217,14 @@ def get_condition_summary(
     """
     Récupérer un résumé visuel de l'état du livre avec recommandations
     """
+    announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annonce non trouvée"
+        )
+    
     condition_score = db.query(BookConditionScore).filter(
         BookConditionScore.announcement_id == announcement_id
     ).first()
@@ -276,10 +303,13 @@ def get_condition_summary(
         recommendations.append("Excellent état! Ce livre se vendra rapidement")
     
     # Impact sur le prix
-    if condition_score.suggested_price and condition_score.base_price:
-        diff = condition_score.base_price - condition_score.suggested_price
-        percentage = (diff / condition_score.base_price) * 100
-        price_impact = f"Prix réduit de {percentage:.0f}% en raison de l'état"
+    if announcement.final_calculated_price and announcement.market_price:
+        diff = announcement.market_price - announcement.final_calculated_price
+        percentage = (diff / announcement.market_price) * 100
+        if percentage > 0:
+            price_impact = f"Prix réduit de {percentage:.0f}% en raison de l'état"
+        else:
+            price_impact = f"Prix à {abs(percentage):.0f}% du prix du marché"
     else:
         price_impact = "Prix basé sur l'état global"
     
@@ -288,19 +318,29 @@ def get_condition_summary(
         condition_label=condition_score.condition_label,
         breakdown=breakdown,
         recommendations=recommendations,
-        price_impact=price_impact
+        price_impact=price_impact,
+        final_calculated_price=announcement.final_calculated_price
     )
 
 
 @router.post("/suggest-price/{announcement_id}", response_model=PriceSuggestionResponse)
 def suggest_price(
     announcement_id: int,
-    base_price: float,
+    market_price: float,
     db: Session = Depends(get_db)
 ):
     """
     Obtenir une suggestion de prix basée sur l'évaluation existante
+    Prix final = market_price × (overall_score / 100)
     """
+    announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
+    
+    if not announcement:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Annonce non trouvée"
+        )
+    
     condition_score = db.query(BookConditionScore).filter(
         BookConditionScore.announcement_id == announcement_id
     ).first()
@@ -311,16 +351,32 @@ def suggest_price(
             detail="Aucune évaluation trouvée. Veuillez d'abord évaluer le livre."
         )
     
-    suggested_price = condition_score.suggest_price(base_price)
-    multiplier = round(suggested_price / base_price, 2)
+    # Calculer le prix final
+    final_calculated_price = round(market_price * (condition_score.overall_score / 100), 2)
+    multiplier = round(condition_score.overall_score / 100, 2)
+    
+    # Mettre à jour les prix
+    condition_score.base_price = market_price
+    condition_score.suggested_price = final_calculated_price
+    announcement.market_price = market_price
+    announcement.final_calculated_price = final_calculated_price
     
     db.commit()
     
+    # Créer le breakdown du calcul
+    price_breakdown = {
+        "market_price": market_price,
+        "condition_score_percentage": condition_score.overall_score,
+        "multiplier": multiplier,
+        "final_price": final_calculated_price,
+        "reduction_amount": round(market_price - final_calculated_price, 2)
+    }
+    
     return PriceSuggestionResponse(
-        base_price=base_price,
-        suggested_price=suggested_price,
-        multiplier=multiplier,
+        market_price=market_price,
         overall_score=condition_score.overall_score,
+        final_calculated_price=final_calculated_price,
         condition_label=condition_score.condition_label,
+        price_breakdown=price_breakdown,
         message=f"Prix suggéré basé sur un état '{condition_score.condition_label}' (score: {condition_score.overall_score:.1f}%)"
     )
