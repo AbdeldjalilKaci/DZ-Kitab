@@ -26,7 +26,7 @@ const Header = () => {
         <div className="links">
           <a href="/addannounce">Home</a>
           <a href="/catalog">Catalog</a>
-          <a>About us</a>
+          <a href="#about">About us</a>
           <a href="#contact">Contact us</a>
         </div>
         <div className="buttons">

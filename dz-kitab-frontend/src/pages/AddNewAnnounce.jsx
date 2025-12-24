@@ -332,7 +332,7 @@ function AddAnnounce() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium mb-1">Market Price (DZD)</label>
+                                        <label className="block text-sm font-medium mb-1">Price (DZD)</label>
                                         <input
                                             type="number"
                                             className="modern-input"
