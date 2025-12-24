@@ -3,14 +3,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
- 
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-# URL de connexion - utilise celle de docker-compose
-DATABASE_URL = os.getenv("DATABASE_URL")
- 
 
 # URL de connexion - doit correspondre à docker-compose.yml
 DATABASE_URL = "postgresql://admin:admin123@database:5432/dz_kitab"
