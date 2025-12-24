@@ -135,9 +135,3 @@ class BookConditionScore(Base):
 
     def __repr__(self):
         return f"<BookConditionScore(announcement_id={self.announcement_id}, overall={self.overall_score:.1f}%)>"
-        
-        self.suggested_price = round(self.base_price * multiplier, 2)
-        return self.suggested_price
-
-    def __repr__(self):
-        return f"<BookConditionScore(announcement_id={self.announcement_id}, overall={self.overall_score:.1f}%)>"
