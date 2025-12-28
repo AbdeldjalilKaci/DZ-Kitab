@@ -25,10 +25,10 @@ const Navbar = () => {
         </div>
 
         <div className="links">
-         <a href="/addannounce">Home</a>
-          <a href="/catalog">Catalog</a>
-          <a>About us</a>
-          <a href="#contact">Contact us</a>
+         <Link to="/">Home</Link>
+        <Link to="/catalog">Books</Link>
+        <a href="#about">About us</a>
+        <a href="#contact">Contact us</a>
         </div>
 
         <div className="buttons flex items-center hover:text-[#F3A109] gap-4">
