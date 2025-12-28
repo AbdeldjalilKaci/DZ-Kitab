@@ -423,10 +423,9 @@ header .register-button:hover {
 
 .services-section .services-cards {
   width: 100%;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   margin-top: 40px;
-  flex-wrap: wrap;
   gap: 30px;
 }
 
@@ -512,11 +511,9 @@ header .register-button:hover {
   background-color: white;
   border-radius: 5px;
   box-shadow: 0 1px 5px rgba(170, 169, 169, 0.5);
-  height: auto;
+  height: 100%;
   transition: transform 0.3s ease;
-  width: 270px;
-  min-width: 220px;
-  max-width: 100%;
+  width: 100%;
   box-sizing: border-box;
 }
 
@@ -538,10 +535,10 @@ header .register-button:hover {
 
 .books-div {
   width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 30px;
+  align-items: start;
 }
 
 .card-book h4 {

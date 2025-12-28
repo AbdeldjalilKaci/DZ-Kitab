@@ -1,9 +1,15 @@
-# app/schemas/book.py
-
 from pydantic import BaseModel, Field, validator
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+
+class UserMiniResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+
+    class Config:
+        from_attributes = True
 
 class BookCondition(str, Enum):
     NEUF = "Neuf"
@@ -87,6 +93,13 @@ class AnnouncementCreate(BaseModel):
     custom_images: Optional[List[str]] = None
     page_count: Optional[int] = Field(None, gt=0, description="Nombre de pages")
     publication_date: Optional[str] = Field(None, description="Date/Année de publication")
+    
+    # Optional fields for manual book entry if Google Books fails
+    title: Optional[str] = None
+    authors: Optional[str] = None
+    publisher: Optional[str] = None
+    cover_image_url: Optional[str] = None
+
 
     @validator('isbn')
     def validate_isbn(cls, v):
@@ -128,7 +141,8 @@ class AnnouncementResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     book: BookResponse
-    user: dict
+    user: UserMiniResponse
+
 
     class Config:
         from_attributes = True

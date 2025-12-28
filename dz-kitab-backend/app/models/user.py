@@ -28,28 +28,36 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    announcements = relationship("Announcement", back_populates="user", cascade="all, delete-orphan")
+    announcements = relationship(
+        "Announcement", 
+        back_populates="user", 
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
+    )
 
     # Rating relationships
     ratings_given = relationship(
         "Rating",
         foreign_keys="Rating.buyer_id",
         back_populates="buyer",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     ratings_received = relationship(
         "Rating",
         foreign_keys="Rating.seller_id",
         back_populates="seller",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     seller_stats = relationship(
         "SellerStats",
         back_populates="user",
         uselist=False,
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     # Notification relationships
@@ -57,27 +65,31 @@ class User(Base):
         "Notification",
         foreign_keys="Notification.user_id",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
     
     notification_preferences = relationship(
         "NotificationPreference",
         back_populates="user",
         uselist=False,
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     # Suspension relationships
     suspensions = relationship(
         "UserSuspension",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     rating_alerts = relationship(
         "RatingAlert",
         back_populates="user",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
+        lazy="select"  # ✅ Chargement paresseux
     )
 
     def __repr__(self):

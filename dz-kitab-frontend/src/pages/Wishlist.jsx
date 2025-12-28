@@ -1,14 +1,45 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useWishlist } from "../context/WishlistContext";
-import { booksData } from "../data/booksData";
+import api from "../utils/api";
+import { Link, useNavigate } from "react-router-dom";
 import "./Wishlist.css";
 
 const Wishlist = () => {
-  const { wishlist, removeFromWishlist } = useWishlist();
+  const navigate = useNavigate();
+  const { removeFromWishlist } = useWishlist();
 
-  const wishlistItems = wishlist
-    .map((id) => booksData.find((book) => book.id === id))
-    .filter(Boolean);
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/wishlist');
+      const items = response.data.items.map(item => ({
+        id: item.announcement_id,
+        title: item.announcement.book.title,
+        price: item.announcement.price,
+        status: item.announcement.status,
+        image: item.announcement.book.cover_image_url || 'https://via.placeholder.com/150'
+      }));
+      setWishlistItems(items);
+    } catch (error) {
+      console.error("Error fetching wishlist items:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
+  const handleRemove = async (id) => {
+    await removeFromWishlist(id);
+    setWishlistItems(prev => prev.filter(item => item.id !== id));
+  };
+
 
   return (
     <div className="wishlist-container">
@@ -50,8 +81,9 @@ const Wishlist = () => {
             <div key={item.id} className="wishlist-row">
               <div
                 className="wishlist-col-delete"
-                onClick={() => removeFromWishlist(item.id)}
+                onClick={() => handleRemove(item.id)}
               >
+
                 <svg
                   width="24"
                   height="24"
@@ -76,19 +108,25 @@ const Wishlist = () => {
               <div className="wishlist-col-name">{item.title}</div>
               <div className="wishlist-col-price">{item.price} DA</div>
               <div
-                className={`wishlist-col-status ${
-                  item.status === "Available"
-                    ? "status-available"
-                    : "status-unavailable"
-                }`}
+                className={`wishlist-col-status ${(item.status === "Active" || item.status === "Available")
+                  ? "status-available"
+                  : "status-unavailable"
+                  }`}
               >
                 {item.status}
               </div>
               <div className="wishlist-col-action">
-                {item.status === "Available" && (
-                  <button className="wishlist-buy-btn">Buy Now</button>
+                {(item.status === "Active" || item.status === "Available") && (
+                  <button
+                    className="wishlist-buy-btn"
+                    onClick={() => navigate(`/book/${item.id}`)}
+                  >
+                    Buy Now
+                  </button>
                 )}
+
               </div>
+
             </div>
           ))
         )}

@@ -4,14 +4,23 @@ import { CiHeart } from "react-icons/ci";
 import { FaHeart } from "react-icons/fa";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { booksData } from "../data/booksData";
 import { useWishlist } from "../context/WishlistContext";
 import "./BookDetails.css";
+import api from "../utils/api";
+import { getCookie } from "../utils/cookies";
+
 
 const BookDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [userRating, setUserRating] = useState(0);
+  const [ratingComment, setRatingComment] = useState('');
+  const [book, setBook] = useState(null);
+  const [seller, setSeller] = useState(null);
+  const [sellerRatings, setSellerRatings] = useState([]);
+  const [recommendedBooks, setRecommendedBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submittingRating, setSubmittingRating] = useState(false);
   const { isInWishlist, toggleWishlist } = useWishlist();
 
   // Scroll to top when book ID changes
@@ -19,10 +28,74 @@ const BookDetails = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Find the book by ID
-  const book = booksData.find((b) => b.id === parseInt(id));
+  useEffect(() => {
+    const fetchBookDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get(`/api/books/announcements/${id}`);
+        const ann = response.data;
+        const mappedBook = {
+          id: ann.id,
+          title: ann.book.title,
+          author: ann.book.authors,
+          price: ann.price,
+          rating: 4.5,
+          image: ann.book.cover_image_url || 'https://via.placeholder.com/150',
+          domain: ann.category || 'General',
+          description: ann.description,
+          isbn: ann.book.isbn,
+          status: ann.status,
+          pages: ann.page_count,
+          year: ann.publication_date
+        };
+        setBook(mappedBook);
+        setSeller(ann.user);
 
-  // If book not found, redirect or show error
+        // Fetch seller ratings
+        try {
+          const ratingsResponse = await api.get(`/api/ratings/seller/${ann.user.id}`);
+          setSellerRatings(ratingsResponse.data.ratings || []);
+        } catch (error) {
+          console.error("Error fetching ratings:", error);
+        }
+
+        // Fetch recommendations (could be simply from all announcements for now)
+        const recResponse = await api.get('/api/books/announcements?limit=5');
+        const recMapped = recResponse.data.announcements
+          .filter(a => a.id !== parseInt(id))
+          .slice(0, 3)
+          .map(a => ({
+            id: a.id,
+            title: a.book.title,
+            image: a.book.cover_image_url || 'https://via.placeholder.com/150',
+            price: a.price,
+            rating: 4.0
+          }));
+        setRecommendedBooks(recMapped);
+
+      } catch (error) {
+        console.error("Error fetching book details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBookDetails();
+  }, [id]);
+
+  // If loading
+  if (loading) {
+    return (
+      <div className="book-details-page">
+        <Header />
+        <div className="book-details-container">
+          <p>Loading book details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // If book not found
   if (!book) {
     return (
       <div className="book-details-page">
@@ -37,11 +110,42 @@ const BookDetails = () => {
       </div>
     );
   }
+  const handleSubmitRating = async () => {
+    // Check if user is logged in
+    const access_token = getCookie('access_token');
+    if (!access_token) {
+      alert("Please login to submit a rating.");
+      navigate('/login');
+      return;
+    }
 
-  // Get recommended books from the same domain
-  const recommendedBooks = booksData
-    .filter((b) => b.domain === book.domain && b.id !== book.id)
-    .slice(0, 3);
+    if (userRating === 0) {
+      alert("Please select a rating before submitting.");
+      return;
+    }
+
+    setSubmittingRating(true);
+    try {
+      await api.post('/api/ratings/', {
+        announcement_id: parseInt(id),
+        rating: userRating,
+        comment: ratingComment || null
+      });
+      alert("Rating submitted successfully!");
+      setUserRating(0);
+      setRatingComment('');
+
+      // Refresh ratings
+      const ratingsResponse = await api.get(`/api/ratings/seller/${seller.id}`);
+      setSellerRatings(ratingsResponse.data.ratings || []);
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+      const errorMsg = error.response?.data?.detail || "Failed to submit rating";
+      alert(errorMsg);
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
 
   const renderStars = (rating, interactive = false, size = "medium") => {
     return (
@@ -154,6 +258,54 @@ const BookDetails = () => {
           <p className="description-text">{book.description}</p>
         </div>
 
+        {/* RATINGS SECTION */}
+        <div className="ratings-section">
+          <h2 className="section-title">Seller Ratings</h2>
+
+          {/* Submit Rating Form */}
+          <div className="submit-rating-form">
+            <h3>Rate this seller</h3>
+            <div className="rating-input">
+              <span>Your Rating:</span>
+              {renderStars(userRating, true, "medium")}
+            </div>
+            <textarea
+              placeholder="Add a comment (optional)..."
+              value={ratingComment}
+              onChange={(e) => setRatingComment(e.target.value)}
+              rows="3"
+              style={{ width: '100%', padding: '10px', marginTop: '10px', borderRadius: '5px', border: '1px solid #ddd' }}
+            />
+            <button
+              onClick={handleSubmitRating}
+              disabled={submittingRating}
+              style={{ marginTop: '10px', padding: '10px 20px', backgroundColor: '#1314d7', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+            >
+              {submittingRating ? 'Submitting...' : 'Submit Rating'}
+            </button>
+          </div>
+
+          {/* Display Ratings */}
+          <div className="ratings-list" style={{ marginTop: '30px' }}>
+            {sellerRatings.length > 0 ? (
+              sellerRatings.map((rating) => (
+                <div key={rating.id} className="rating-card" style={{ padding: '15px', marginBottom: '15px', border: '1px solid #eee', borderRadius: '5px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong>{rating.buyer_username}</strong>
+                    {renderStars(rating.rating, false, "small")}
+                  </div>
+                  {rating.comment && (
+                    <p style={{ marginTop: '10px', color: '#666' }}>{rating.comment}</p>
+                  )}
+                  <small style={{ color: '#999' }}>{new Date(rating.created_at).toLocaleDateString()}</small>
+                </div>
+              ))
+            ) : (
+              <p style={{ color: '#999' }}>No ratings yet. Be the first to rate this seller!</p>
+            )}
+          </div>
+        </div>
+
         {/* ALSO RECOMMENDED SECTION */}
         <div className="recommended-section">
           <h2 className="section-title">Also Recommended</h2>
@@ -178,10 +330,10 @@ const BookDetails = () => {
                     <p className="recommended-price">{recBook.price} DA</p>
                     <button
                       className="recommended-buy-btn"
-                      onClick={(e) => e.preventDefault()}
                     >
                       Buy now
                     </button>
+
                   </div>
                 </div>
               </Link>

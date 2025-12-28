@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Register.css";
-import axios from 'axios'
+import api from '../utils/api';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -22,8 +22,7 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:8000/auth/register", {
+      await api.post("/auth/register", {
         username: username,
         first_name: firstName,
         last_name: lastName,
@@ -32,25 +31,24 @@ const Register = () => {
         password: password,
         university: university,
       });
-      alert('good job')
-      console.log(response.data)
-      setUsername(''),
-        setFirstName(''),
-        setLastName(''),
-        setEmail(''),
-        setPhoneNumber(''),
-        setPassword(''),
-        setUniversity('')
+      alert('Registration successful! Please login.');
+      navigate('/login');
     } catch (error) {
       if (error.response) {
-        console.log("422 DETAIL 👉", error.response.data);
-        alert(JSON.stringify(error.response.data.detail, null, 2));
+        console.log("Registration error detail:", error.response.data);
+        const detail = error.response.data.detail;
+        if (Array.isArray(detail)) {
+          alert(detail.map(err => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join('\n'));
+        } else {
+          alert(typeof detail === 'string' ? detail : JSON.stringify(detail));
+        }
       } else {
+        alert("An error occurred during registration. Please try again.");
         console.error(error);
       }
     }
-
   };
+
 
   const handleLogIn = () => {
     navigate("/login");
@@ -152,13 +150,10 @@ const Register = () => {
                 <option value="" disabled>
                   Select your university
                 </option>
-                <option value="estin">ESTIN</option>
-                <option value="usthb">USTHB</option>
-                <option value="esi">ESI</option>
-                <option value="enp">ENP</option>
-                <option value="epau">EPAU</option>
-                <option value="ensb">ENSB</option>
-                <option value="other">Other</option>
+                <option value="ESTIN">ESTIN</option>
+                <option value="USTHB">USTHB</option>
+                <option value="ESI">ESI</option>
+                <option value="EPAU">EPAU</option>
               </select>
             </div>
 

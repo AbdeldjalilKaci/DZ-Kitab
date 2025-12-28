@@ -4,10 +4,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# URL de connexion - doit correspondre à docker-compose.yml
-DATABASE_URL = "postgresql://postgres:Jalil.com0@localhost:5432/dz_kitab"
+import os
+from dotenv import load_dotenv
+
+# Charger les variables d'environnement
+load_dotenv()
+
+# URL de connexion - Support SQLite par défaut pour le développement local facile
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./dzkitab.db")
+
 # Créer le moteur SQLAlchemy
-engine = create_engine(DATABASE_URL)
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+else:
+    engine = create_engine(DATABASE_URL)
+
 
 # Créer une session locale
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

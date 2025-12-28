@@ -1,21 +1,76 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CiHeart } from "react-icons/ci";
 import { FaHeart } from "react-icons/fa";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { booksData } from "../data/booksData";
 import { useWishlist } from "../context/WishlistContext";
 import "./Listing.css";
+import api from "../utils/api";
 
 const Listing = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [selectedDomains, setSelectedDomains] = useState([]);
   const [selectedPrice, setSelectedPrice] = useState("");
   const [selectedRating, setSelectedRating] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("default");
   const [currentPage, setCurrentPage] = useState(1);
+  const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { isInWishlist, toggleWishlist } = useWishlist();
+
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      setLoading(true);
+      try {
+        const response = await api.get('/api/books/announcements');
+        // Map backend announcement to the format expected by the frontend
+        const mappedBooks = response.data.announcements.map(ann => ({
+          id: ann.id,
+          title: ann.book.title,
+          author: ann.book.authors,
+          price: ann.price,
+          rating: 4.5, // Backend might not have this yet, or we use a default
+          image: ann.book.cover_image_url || 'https://via.placeholder.com/150',
+          domain: ann.category || 'General',
+          description: ann.description,
+          isbn: ann.book.isbn,
+          status: ann.status
+        }));
+        setBooks(mappedBooks);
+      } catch (error) {
+        console.error("Error fetching announcements:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get('/api/books/categories');
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchAnnouncements();
+    fetchCategories();
+  }, []);
+
+  // Handle category query parameter from landing page
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category');
+    if (categoryFromUrl && categories.length > 0) {
+      // Check if this category exists in our categories list
+      if (categories.includes(categoryFromUrl) && !selectedDomains.includes(categoryFromUrl)) {
+        setSelectedDomains([categoryFromUrl]);
+      }
+    }
+  }, [searchParams, categories]);
 
   const handleDomainChange = (domain) => {
     if (selectedDomains.includes(domain)) {
@@ -29,7 +84,7 @@ const Listing = () => {
     return (
       <div className="stars">
         {[1, 2, 3, 4, 5].map((star) => (
-          <span key={star} className={star <= rating ? "star filled" : "star"}>
+          <span key={star} className={star <= Math.floor(rating) ? "star filled" : "star"}>
             ★
           </span>
         ))}
@@ -38,7 +93,7 @@ const Listing = () => {
   };
 
   // Filter and sort books
-  let filteredBooks = [...booksData];
+  let filteredBooks = [...books];
 
   // Filter by domain
   if (selectedDomains.length > 0) {
@@ -69,7 +124,7 @@ const Listing = () => {
   // Filter by rating
   if (selectedRating > 0) {
     filteredBooks = filteredBooks.filter(
-      (book) => book.rating === selectedRating
+      (book) => Math.floor(book.rating) === selectedRating
     );
   }
 
@@ -106,7 +161,7 @@ const Listing = () => {
   const currentBooks = filteredBooks.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
-  React.useEffect(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [selectedDomains, selectedPrice, selectedRating, searchQuery, sortBy]);
 
@@ -118,8 +173,8 @@ const Listing = () => {
           <div className="filter-section">
             <h3 className="filter-title">Filter by Domain</h3>
             <div className="filter-options">
-              {["Mathematics", "Physics", "Science", "Philosophy"].map(
-                (domain) => (
+              {categories.length > 0 ? (
+                categories.map((domain) => (
                   <label key={domain} className="checkbox-label">
                     <input
                       type="checkbox"
@@ -128,7 +183,18 @@ const Listing = () => {
                     />
                     <span>{domain}</span>
                   </label>
-                )
+                ))
+              ) : (
+                ["Mathematics", "Physics", "Science", "Philosophy"].map((domain) => (
+                  <label key={domain} className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={selectedDomains.includes(domain)}
+                      onChange={() => handleDomainChange(domain)}
+                    />
+                    <span>{domain}</span>
+                  </label>
+                ))
               )}
             </div>
           </div>
@@ -253,7 +319,9 @@ const Listing = () => {
           </div>
 
           {/* BOOK GRID */}
-          {currentBooks.length === 0 ? (
+          {loading ? (
+            <div className="loading-container">Loading books...</div>
+          ) : currentBooks.length === 0 ? (
             <div className="no-results">
               <p>No books found matching your filters.</p>
               <button
@@ -325,10 +393,14 @@ const Listing = () => {
                       </div>
                       <button
                         className="buy-now-btn"
-                        onClick={(e) => e.preventDefault()}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          navigate(`/book/${book.id}`);
+                        }}
                       >
                         Buy now
                       </button>
+
                     </div>
                   </div>
                 </Link>
@@ -352,9 +424,8 @@ const Listing = () => {
                   return (
                     <button
                       key={page}
-                      className={`pagination-dot ${
-                        currentPage === page ? "active" : ""
-                      }`}
+                      className={`pagination-dot ${currentPage === page ? "active" : ""
+                        }`}
                       onClick={() => setCurrentPage(page)}
                     >
                       {page}

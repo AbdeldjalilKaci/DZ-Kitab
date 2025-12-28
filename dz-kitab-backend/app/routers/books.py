@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app.models.book import Book, Announcement, BookCategoryEnum
+from app.models.book import Book, Announcement, BookCategoryEnum, BookConditionEnum, AnnouncementStatusEnum
 from app.models.user import User
 from app.schemas.book import (
     AnnouncementCreate,
@@ -140,35 +140,53 @@ async def create_announcement(
     3. Creates the announcement with category, page count, publication date
     """
     try:
+        print(f"📖 Creating announcement for ISBN: {announcement_data.isbn}")
+        print(f"📦 Data: {announcement_data.dict(exclude={'custom_images'})}")
+        
         # 1. Fetch book info from Google Books
         book_info = await fetch_book_by_isbn(announcement_data.isbn)
         
-        if not book_info:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Aucun livre trouvé pour l'ISBN: {announcement_data.isbn}"
-            )
-        
         # 2. Check if book already exists in database
-        book = db.query(Book).filter(Book.isbn == book_info["isbn"]).first()
+        isbn_to_use = announcement_data.isbn.replace("-", "").replace(" ", "")
+        book = db.query(Book).filter(Book.isbn == isbn_to_use).first()
         
         if not book:
-            # Create new book entry with page_count from Google Books
-            book = Book(
-                isbn=book_info["isbn"],
-                title=book_info["title"],
-                subtitle=book_info.get("subtitle"),
-                authors=", ".join(book_info.get("authors", [])),
-                publisher=book_info.get("publisher"),
-                published_date=book_info.get("published_date"),
-                description=book_info.get("description"),
-                page_count=book_info.get("page_count"),  # From Google Books
-                categories=", ".join(book_info.get("categories", [])),
-                language=book_info.get("language", "fr"),
-                cover_image_url=book_info.get("cover_image_url"),
-                preview_link=book_info.get("preview_link"),
-                info_link=book_info.get("info_link")
-            )
+            if not book_info:
+                # If not found on Google Books, we must have manual title and authors
+                if not announcement_data.title:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Aucun livre trouvé pour l'ISBN: {announcement_data.isbn}. Veuillez fournir le titre et l'auteur manuellement."
+                    )
+                
+                # Create new book entry from manual data
+                book = Book(
+                    isbn=isbn_to_use,
+                    title=announcement_data.title,
+                    authors=announcement_data.authors or "Auteur Inconnu",
+                    publisher=announcement_data.publisher,
+                    published_date=announcement_data.publication_date,
+                    description=announcement_data.description,
+                    page_count=announcement_data.page_count,
+                    cover_image_url=announcement_data.cover_image_url,
+                )
+            else:
+                # Create new book entry with info from Google Books
+                book = Book(
+                    isbn=book_info["isbn"],
+                    title=book_info["title"],
+                    subtitle=book_info.get("subtitle"),
+                    authors=", ".join(book_info.get("authors", [])),
+                    publisher=book_info.get("publisher"),
+                    published_date=book_info.get("published_date"),
+                    description=book_info.get("description"),
+                    page_count=book_info.get("page_count"),
+                    categories=", ".join(book_info.get("categories", [])),
+                    language=book_info.get("language", "fr"),
+                    cover_image_url=book_info.get("cover_image_url"),
+                    preview_link=book_info.get("preview_link"),
+                    info_link=book_info.get("info_link")
+                )
             db.add(book)
             db.commit()
             db.refresh(book)
@@ -182,43 +200,51 @@ async def create_announcement(
         if announcement_data.custom_images:
             custom_images_str = ",".join(announcement_data.custom_images)
         
+        # Ensure we use enum values that match the database expectation
+        # We can pass the string values as we now use str-Enums in models
         announcement = Announcement(
             book_id=book.id,
             user_id=user_id,
-            category=announcement_data.category.value,  # Catégorie choisie
+            category=announcement_data.category.value,
             price=announcement_data.price,
-            market_price=announcement_data.market_price,  # Prix du marché
+            market_price=announcement_data.market_price,
             condition=announcement_data.condition.value,
             description=announcement_data.description,
             location=announcement_data.location,
             custom_images=custom_images_str,
-            page_count=page_count,  # Nombre de pages
-            publication_date=publication_date  # Date de publication
+            page_count=page_count,
+            publication_date=publication_date
         )
         
         db.add(announcement)
         db.commit()
         db.refresh(announcement)
-        
+
         # 5. Prepare response with nested data
         user = db.query(User).filter(User.id == user_id).first()
         
+        # Safe enum to string conversion
+        def get_val(obj):
+            if hasattr(obj, 'value'):
+                return obj.value
+            return str(obj)
+
         return AnnouncementResponse(
             id=announcement.id,
             book_id=announcement.book_id,
             user_id=announcement.user_id,
-            category=announcement.category.value,
+            category=get_val(announcement.category),
             price=announcement.price,
             market_price=announcement.market_price,
             final_calculated_price=announcement.final_calculated_price,
-            condition=announcement.condition.value,
-            status=announcement.status.value,
+            condition=get_val(announcement.condition),
+            status=get_val(announcement.status),
             description=announcement.description,
             custom_images=announcement.custom_images,
             location=announcement.location,
             page_count=announcement.page_count,
             publication_date=announcement.publication_date,
-            views_count=announcement.views_count,
+            views_count=announcement.views_count or 0,
             created_at=announcement.created_at,
             updated_at=announcement.updated_at,
             book=BookResponse(
@@ -238,22 +264,22 @@ async def create_announcement(
                 info_link=book.info_link,
                 created_at=book.created_at
             ),
-            user={
-                "id": user.id,
-                "username": user.username,
-                "email": user.email
-            }
+            user=user
+
         )
         
     except HTTPException:
         raise
     except Exception as e:
+        import traceback
         print(f"❌ Error creating announcement: {e}")
+        traceback.print_exc()
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Erreur lors de la création de l'annonce: {str(e)}"
         )
+
 
 
 # ============================================

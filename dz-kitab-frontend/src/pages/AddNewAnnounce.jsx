@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
+import { useNavigate } from 'react-router-dom';
 import './addnewannouce.css';
 import { FaSearch, FaBook, FaCheckCircle, FaCamera, FaRobot, FaArrowRight, FaArrowLeft, FaBarcode, FaUpload } from 'react-icons/fa';
 import { MdVerified, MdWarning } from 'react-icons/md';
 
 function AddAnnounce() {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
 
@@ -21,8 +23,10 @@ function AddAnnounce() {
         description: '',
         thumbnail: '',
         publisher: '',
-        basePrice: ''
+        basePrice: '',
+        selectedCategory: ''
     });
+
 
     const initialScoring = {
         page: {
@@ -67,7 +71,7 @@ function AddAnnounce() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.get('http://localhost:8000/categories');
+                const response = await api.get('/api/books/categories');
                 setCategories(response.data);
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -76,27 +80,27 @@ function AddAnnounce() {
         fetchCategories();
     }, []);
 
-    const fetchBookDetails = async () => {
+    const fetchBookDetailsByISBN = async () => {
         if (!isbn) return;
         setLoading(true);
         try {
-            const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-            const data = await response.json();
-            if (data.items && data.items.length > 0) {
-                const info = data.items[0].volumeInfo;
+            const response = await api.get(`/api/books/isbn/${isbn}`);
+            if (response.data.found) {
+                const info = response.data.book_info;
                 setBookDetails({
                     title: info.title || '',
                     authors: info.authors || [],
-                    pageCount: info.pageCount || '',
-                    publishedDate: info.publishedDate || '',
+                    pageCount: info.page_count || '',
+                    publishedDate: info.published_date || '',
                     categories: info.categories || [],
                     description: info.description || '',
-                    thumbnail: info.imageLinks?.thumbnail || '',
-                    publisher: info.publisher || ''
+                    thumbnail: info.cover_image_url || '',
+                    publisher: info.publisher || '',
+                    basePrice: ''
                 });
                 setBookFound(true);
             } else {
-                alert('Book not found! Please enter details manually.');
+                alert(response.data.message || 'Book not found! Please enter details manually.');
                 setBookFound(false);
             }
         } catch (error) {
@@ -110,7 +114,6 @@ function AddAnnounce() {
     useEffect(() => {
         const isStateValid = scoringData?.page && 'page_no_missing' in scoringData.page;
         if (!isStateValid) {
-            console.log("Resetting state due to schema mismatch");
             setScoringData(initialScoring);
         }
     }, [scoringData]);
@@ -189,13 +192,17 @@ function AddAnnounce() {
         setPhotos([...photos, ...newPhotos]);
     };
 
+    const [coverFile, setCoverFile] = useState(null);
+
     const handleManualCoverUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            setCoverFile(file);
             const previewUrl = URL.createObjectURL(file);
             setBookDetails(prev => ({ ...prev, thumbnail: previewUrl }));
         }
     };
+
 
     const analyzePhotos = () => {
         if (photos.length === 0) return;
@@ -210,19 +217,94 @@ function AddAnnounce() {
         }, 2000);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        const calculatedPrice = Math.floor((bookDetails.basePrice || 0) * (overallScore / 100));
-        const finalData = {
-            ...bookDetails,
-            isbn,
-            conditionScore: overallScore,
-            scoringDetails: scoringData,
-            price: calculatedPrice,
-            photos
-        };
-        console.log("Submitting:", finalData);
-        alert(`Announcement Created for ${calculatedPrice} DZD! (Check console for data)`);
+        setLoading(true);
+        try {
+            if (!isbn || (isbn.replace(/[-\s]/g, '').length !== 10 && isbn.replace(/[-\s]/g, '').length !== 13)) {
+                alert("Please enter a valid 10 or 13 digit ISBN.");
+                setLoading(false);
+                return;
+            }
+
+            if (!bookDetails.selectedCategory) {
+                alert("Please select a valid book category.");
+                setStep(1);
+                setLoading(false);
+                return;
+            }
+
+            const calculatedPrice = Math.floor((Number(bookDetails.basePrice) || 0) * (overallScore / 100));
+
+            if (calculatedPrice <= 0) {
+                alert("The final price must be greater than 0. Please enter a valid Market Price.");
+                setLoading(false);
+                return;
+            }
+
+            // 1. Upload custom photos
+            const uploadedImageUrls = [];
+            for (const photo of photos) {
+                const formData = new FormData();
+                formData.append('file', photo.file);
+                try {
+                    const uploadRes = await api.post('/api/images/upload', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    uploadedImageUrls.push(uploadRes.data.url);
+                } catch (err) {
+                    console.error("Error uploading image:", err);
+                }
+            }
+
+            // 2. Handle manual cover if it was uploaded as a file
+            let finalThumbnail = bookDetails.thumbnail;
+            if (coverFile) {
+                const formData = new FormData();
+                formData.append('file', coverFile);
+                try {
+                    const uploadRes = await api.post('/api/images/upload', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    finalThumbnail = uploadRes.data.url;
+                } catch (err) {
+                    console.error("Error uploading cover:", err);
+                }
+            }
+
+
+            const finalData = {
+                isbn: isbn.replace(/[-\s]/g, ''),
+                category: bookDetails.selectedCategory,
+                price: calculatedPrice,
+                market_price: Number(bookDetails.basePrice) || null,
+                condition: overallScore > 95 ? "Neuf" : overallScore > 80 ? "Comme neuf" : overallScore > 50 ? "Bon état" : "État acceptable",
+                description: bookDetails.description || "No description provided",
+                location: "Alger",
+                page_count: Number(bookDetails.pageCount) || null,
+                publication_date: bookDetails.publishedDate,
+                custom_images: uploadedImageUrls,
+                title: bookDetails.title,
+                authors: Array.isArray(bookDetails.authors) ? bookDetails.authors.join(', ') : (bookDetails.authors || "Auteur Inconnu"),
+                publisher: bookDetails.publisher,
+                cover_image_url: finalThumbnail
+            };
+
+            await api.post("/api/books/announcements", finalData);
+            alert(`Announcement Created for ${calculatedPrice} DZD!`);
+            navigate('/catalog');
+        } catch (error) {
+            console.error("Submission error details:", error.response?.data);
+            const errorMsg = error.response?.data?.detail;
+            const detailedInfo = Array.isArray(errorMsg)
+                ? errorMsg.map(e => `${e.loc.join('.')}: ${e.msg}`).join('\n')
+                : (typeof errorMsg === 'string' ? errorMsg : error.message);
+
+            alert("Error creating announcement:\n" + detailedInfo);
+        } finally {
+            setLoading(false);
+        }
+
     };
 
 
@@ -263,7 +345,7 @@ function AddAnnounce() {
                                         onChange={(e) => setIsbn(e.target.value)}
                                         className="modern-input"
                                     />
-                                    <button onClick={fetchBookDetails} disabled={loading} className="btn-primary search-btn">
+                                    <button onClick={fetchBookDetailsByISBN} disabled={loading} className="btn-primary search-btn">
                                         {loading ? 'Searching...' : <><FaSearch /> Search</>}
                                     </button>
                                 </div>
@@ -322,12 +404,12 @@ function AddAnnounce() {
                                         <label className="block text-sm font-medium mb-1">Category</label>
                                         <select
                                             className="modern-input"
-                                            value={bookDetails.categories[0] || ''}
-                                            onChange={(e) => setBookDetails({ ...bookDetails, categories: [e.target.value] })}
+                                            value={bookDetails.selectedCategory || ''}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, selectedCategory: e.target.value })}
                                         >
                                             <option value="" disabled>Select a category</option>
                                             {categories.map((cat, index) => (
-                                                <option key={index} value={cat.name || cat}>{cat.name || cat}</option>
+                                                <option key={index} value={cat}>{cat}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -349,6 +431,16 @@ function AddAnnounce() {
                                             className="modern-input"
                                             value={bookDetails.publishedDate}
                                             onChange={(e) => setBookDetails({ ...bookDetails, publishedDate: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-medium mb-1">Description (Optional)</label>
+                                        <textarea
+                                            className="modern-input"
+                                            rows="4"
+                                            value={bookDetails.description}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, description: e.target.value })}
+                                            placeholder="Enter a brief description of the book..."
                                         />
                                     </div>
                                     <div className="col-span-2">
@@ -402,7 +494,35 @@ function AddAnnounce() {
                                             required
                                         />
                                     </div>
-                                    <span className="badge-category mt-2">{bookDetails.categories[0]}</span>
+                                    <div className="mt-2">
+                                        <label className="block text-sm font-medium mb-1 text-gray-700">Category</label>
+                                        <select
+                                            className="modern-input"
+                                            value={bookDetails.selectedCategory || ''}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, selectedCategory: e.target.value })}
+                                        >
+                                            <option value="" disabled>Select a category</option>
+                                            {categories.map((cat, index) => (
+                                                <option key={index} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            Google Books suggests: {bookDetails.categories[0] || "None"}
+                                        </p>
+                                    </div>
+                                    <div className="mt-2">
+                                        <label className="block text-sm font-medium mb-1 text-gray-700">Description (Optional)</label>
+                                        <textarea
+                                            className="modern-input"
+                                            rows="4"
+                                            value={bookDetails.description}
+                                            onChange={(e) => setBookDetails({ ...bookDetails, description: e.target.value })}
+                                            placeholder="Edit or add book description..."
+                                        />
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {bookDetails.description ? "You can edit the description above" : "No description from Google Books"}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -418,7 +538,6 @@ function AddAnnounce() {
                             </button>
                         </div>
                     </div>
-
                 )}
 
                 {step === 2 && (

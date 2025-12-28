@@ -6,20 +6,20 @@ from sqlalchemy.sql import func
 from app.database import Base
 import enum
 
-class BookConditionEnum(enum.Enum):
+class BookConditionEnum(str, enum.Enum):
     NEUF = "Neuf"
     COMME_NEUF = "Comme neuf"
     BON_ETAT = "Bon état"
     ETAT_ACCEPTABLE = "État acceptable"
     USAGE = "Usagé"
 
-class AnnouncementStatusEnum(enum.Enum):
+class AnnouncementStatusEnum(str, enum.Enum):
     ACTIVE = "Active"
     VENDU = "Vendu"
     RESERVE = "Réservé"
     DESACTIVE = "Désactivé"
 
-class BookCategoryEnum(enum.Enum):
+class BookCategoryEnum(str, enum.Enum):
     INFORMATIQUE = "Informatique"
     MATHEMATIQUES = "Mathématiques"
     PHYSIQUE = "Physique"
@@ -38,6 +38,7 @@ class BookCategoryEnum(enum.Enum):
     ARCHITECTURE = "Architecture"
     INGENIERIE = "Ingénierie"
     AUTRE = "Autre"
+
 
 class Book(Base):
     """Table pour stocker les informations des livres (depuis Google Books API)"""

@@ -8,8 +8,9 @@ import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError
 
-from app.routers import upload, books, condition, ratings, notifications, auth
+from app.routers import upload, books, condition, ratings, notifications, auth, wishlist
 from app.database import engine, Base, DATABASE_URL
+import app.models
 
 # ===============================
 # WAIT FOR DATABASE
@@ -46,7 +47,16 @@ app = FastAPI(
 # CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify exact origins
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+        "http://0.0.0.0:5173",
+
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +75,8 @@ app.include_router(books.router, prefix="/api/books", tags=["Books & Announcemen
 app.include_router(condition.router, prefix="/api/condition", tags=["Book Condition"])
 app.include_router(ratings.router, prefix="/api/ratings", tags=["Ratings"])
 app.include_router(notifications.router, prefix="/api/notifications", tags=["Notifications"])
+app.include_router(wishlist.router, prefix="/api/wishlist", tags=["Wishlist"])
+
 
 # ============================================
 # ROOT ENDPOINTS

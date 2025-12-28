@@ -1,14 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import "./Login.css";
-import axios from 'axios'
+import api from '../utils/api';
+import { useWishlist } from "../context/WishlistContext";
+import { setCookie } from "../utils/cookies";
+
 const Login = () => {
   const navigate = useNavigate();
+  const { fetchWishlist } = useWishlist();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [animate, setAnimate] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     setAnimate(true);
@@ -16,23 +22,29 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // console.log("Login submitted:", { email, password, rememberMe });
+    setError("");
     try {
-      const response = await axios.post('http://localhost:8000/auth/login', {
+      const response = await api.post('/auth/login', {
         email,
         password
-      },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            // 
-          },
-          withCredentials: true,
-        })
-      alert('login success');
-      console.log(response.data)
+      });
+
+      const { access_token, user } = response.data;
+      setCookie('access_token', access_token, rememberMe ? 30 : 7);
+      setCookie('user', JSON.stringify(user), rememberMe ? 30 : 7);
+
+
+      // Refresh wishlist state
+      fetchWishlist();
+
+      alert('Login successful');
+
+      navigate('/');
     } catch (error) {
-      console.log(error)
+      console.error("Login error:", error);
+      const detail = error.response?.data?.detail || "An error occurred during login";
+      setError(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      alert(typeof detail === 'string' ? detail : JSON.stringify(detail));
     }
   };
 
