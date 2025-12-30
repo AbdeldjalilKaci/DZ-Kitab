@@ -11,7 +11,7 @@ import Wishlist from "./pages/Wishlist";
 import BookDetails from "./pages/BookDetails";
 import "./App.css";
 import "./style.css";
-
+import MyAnnouncements from "./pages/MyAnnouncements";
 import { getCookie } from "./utils/cookies";
 
 const PrivateRoute = ({ children }) => {
@@ -50,6 +50,11 @@ export default function App() {
         <Route path="/message" element={
           <PrivateRoute>
             <Messages />
+          </PrivateRoute>
+        } />
+        <Route path="/myannouncements" element={
+          <PrivateRoute>
+            <MyAnnouncements />
           </PrivateRoute>
         } />
         <Route path="/catalog" element={<Listing />} />
