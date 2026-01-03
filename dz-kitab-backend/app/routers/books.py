@@ -2,7 +2,10 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
+import httpx
+
 from app.database import get_db
 from app.models.book import Book, Announcement, BookCategoryEnum, BookConditionEnum, AnnouncementStatusEnum
 from app.models.user import User
@@ -19,6 +22,16 @@ from app.middleware.auth import security
 from app.services.jwt import verify_token
 from app.services.google_books import fetch_book_by_isbn
 
+from app.core.errors import (
+    ResourceNotFoundError,
+    UnauthorizedError,
+    ForbiddenError,
+    ValidationError,
+    DatabaseError,
+    ExternalServiceError
+)
+from app.core.logging_config import error_logger
+
 router = APIRouter()
 
 
@@ -26,19 +39,13 @@ def get_current_user_id(token: str = Depends(security), db: Session = Depends(ge
     """Get the current authenticated user ID from token"""
     payload = verify_token(token)
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token invalide"
-        )
+        raise UnauthorizedError("Token invalide")
     
     email = payload.get("sub")
     user = db.query(User).filter(User.email == email).first()
     
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Utilisateur non trouvé"
-        )
+        raise ResourceNotFoundError("Utilisateur", email)
     
     return user.id
 
@@ -92,18 +99,14 @@ async def test_isbn_lookup():
 async def lookup_isbn(isbn: str):
     """
     Lookup book information by ISBN using Google Books API
-    
-    This endpoint is used to auto-fill the book form when creating an announcement.
-    The user enters the ISBN, and this endpoint returns all book details including cover image.
     """
     try:
-        # Fetch book info from Google Books
         book_info = await fetch_book_by_isbn(isbn)
         
         if not book_info:
             return ISBNLookupResponse(
                 found=False,
-                message=f"Aucun livre trouvé pour l'ISBN: {isbn}. Vérifiez que l'ISBN est correct ou essayez un autre ISBN. Exemples d'ISBN valides : 9780439708180 (Harry Potter), 9782070612758 (Le Petit Prince)"
+                message=f"Aucun livre trouvé pour l'ISBN: {isbn}. Vérifiez que l'ISBN est correct ou essayez un autre ISBN."
             )
         
         return ISBNLookupResponse(
@@ -111,14 +114,19 @@ async def lookup_isbn(isbn: str):
             book_info=GoogleBookInfo(**book_info)
         )
         
-    except HTTPException:
-        raise
-    except Exception as e:
-        print(f"❌ Error in ISBN lookup: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur lors de la recherche du livre"
+    except httpx.HTTPError as e:
+        raise ExternalServiceError(
+            "Google Books API",
+            "L'API Google Books est temporairement indisponible. Veuillez réessayer."
         )
+    except Exception as e:
+        error_logger.log_error(
+            error_type="ExternalServiceError",
+            message=f"Erreur lors de la recherche ISBN: {str(e)}",
+            status_code=500,
+            extra_data={"isbn": isbn}
+        )
+        raise ExternalServiceError("Google Books API")
 
 
 # ============================================
@@ -154,9 +162,9 @@ async def create_announcement(
             if not book_info:
                 # If not found on Google Books, we must have manual title and authors
                 if not announcement_data.title:
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"Aucun livre trouvé pour l'ISBN: {announcement_data.isbn}. Veuillez fournir le titre et l'auteur manuellement."
+                    raise ValidationError(
+                        f"Aucun livre trouvé pour l'ISBN: {announcement_data.isbn}. "
+                        "Veuillez fournir le titre et l'auteur manuellement."
                     )
                 
                 # Create new book entry from manual data
@@ -201,7 +209,6 @@ async def create_announcement(
             custom_images_str = ",".join(announcement_data.custom_images)
         
         # Ensure we use enum values that match the database expectation
-        # We can pass the string values as we now use str-Enums in models
         announcement = Announcement(
             book_id=book.id,
             user_id=user_id,
@@ -265,21 +272,35 @@ async def create_announcement(
                 created_at=book.created_at
             ),
             user=user
-
         )
         
-    except HTTPException:
-        raise
-    except Exception as e:
-        import traceback
-        print(f"❌ Error creating announcement: {e}")
-        traceback.print_exc()
+    except IntegrityError as e:
         db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur lors de la création de l'annonce: {str(e)}"
+        error_logger.log_error(
+            error_type="IntegrityError",
+            message="Contrainte d'intégrité violée",
+            status_code=409,
+            extra_data={"isbn": announcement_data.isbn}
         )
-
+        raise  # Le handler global s'en charge
+        
+    except ValidationError:
+        # Re-raise les ValidationError sans les wrapper
+        raise
+        
+    except ExternalServiceError:
+        # Re-raise les ExternalServiceError sans les wrapper
+        raise
+        
+    except Exception as e:
+        db.rollback()
+        error_logger.log_error(
+            error_type=type(e).__name__,
+            message=str(e),
+            status_code=500,
+            extra_data={"isbn": announcement_data.isbn}
+        )
+        raise DatabaseError("Erreur lors de la création de l'annonce")
 
 
 # ============================================
@@ -360,11 +381,12 @@ def get_announcements(
         )
         
     except Exception as e:
-        print(f"❌ Error fetching announcements: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur lors de la récupération des annonces"
+        error_logger.log_error(
+            error_type=type(e).__name__,
+            message=f"Erreur lors de la récupération des annonces: {str(e)}",
+            status_code=500
         )
+        raise DatabaseError("Erreur lors de la récupération des annonces")
 
 
 @router.get("/announcements/{announcement_id}", response_model=AnnouncementResponse)
@@ -373,10 +395,7 @@ def get_announcement(announcement_id: int, db: Session = Depends(get_db)):
     announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
     
     if not announcement:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Annonce non trouvée"
-        )
+        raise ResourceNotFoundError("Annonce", announcement_id)
     
     # Increment view count
     announcement.views_count += 1
@@ -457,9 +476,12 @@ def get_my_announcements(
             )
         )
     
-    return AnnouncementListResponse(total=len(formatted_announcements),
-    announcements=formatted_announcements
-)
+    return AnnouncementListResponse(
+        total=len(formatted_announcements),
+        announcements=formatted_announcements
+    )
+
+
 # ============================================
 # UPDATE ANNOUNCEMENT
 # ============================================
@@ -474,16 +496,13 @@ def update_announcement(
     announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
     
     if not announcement:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Annonce non trouvée"
-        )
+        raise ResourceNotFoundError("Annonce", announcement_id)
     
     # Check ownership
     if announcement.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Vous n'êtes pas autorisé à modifier cette annonce"
+        raise ForbiddenError(
+            "Vous n'êtes pas autorisé à modifier cette annonce. "
+            "Seul le propriétaire peut modifier une annonce."
         )
     
     # Update fields
@@ -518,12 +537,12 @@ def update_announcement(
         id=announcement.id,
         book_id=announcement.book_id,
         user_id=announcement.user_id,
-        category=announcement.category.value if announcement.category else None,  # ✅ Sécurisé
+        category=announcement.category.value if announcement.category else None,
         price=announcement.price,
         market_price=announcement.market_price,
         final_calculated_price=announcement.final_calculated_price,
-        condition=announcement.condition.value if announcement.condition else None,  # ✅ Sécurisé
-        status=announcement.status.value if announcement.status else None,  # ✅ Sécurisé
+        condition=announcement.condition.value if announcement.condition else None,
+        status=announcement.status.value if announcement.status else None,
         description=announcement.description,
         custom_images=announcement.custom_images,
         location=announcement.location,
@@ -539,6 +558,8 @@ def update_announcement(
             "email": user.email
         }
     )
+
+
 # ============================================
 # DELETE ANNOUNCEMENT
 # ============================================
@@ -548,20 +569,16 @@ def delete_announcement(
     db: Session = Depends(get_db),
     user_id: int = Depends(get_current_user_id)
 ):
-    """Delete an announcement (only by the owner)"""
+    """Delete an announcement (only by owner)"""
     announcement = db.query(Announcement).filter(Announcement.id == announcement_id).first()
     
     if not announcement:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Annonce non trouvée"
-        )
+        raise ResourceNotFoundError("Annonce", announcement_id)
     
-    # Check ownership
     if announcement.user_id != user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Vous n'êtes pas autorisé à supprimer cette annonce"
+        raise ForbiddenError(
+            "Vous n'êtes pas autorisé à supprimer cette annonce. "
+            "Seul le propriétaire peut supprimer une annonce."
         )
     
     try:
@@ -569,13 +586,16 @@ def delete_announcement(
         db.commit()
         
         return {
+            "success": True,
             "message": "Annonce supprimée avec succès",
-            "announcement_id": announcement_id
+            "data": {"id": announcement_id}
         }
     except Exception as e:
         db.rollback()
-        print(f"❌ Error deleting announcement: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Erreur lors de la suppression de l'annonce"
+        error_logger.log_error(
+            error_type="DatabaseError",
+            message=f"Erreur lors de la suppression de l'annonce {announcement_id}",
+            status_code=500,
+            extra_data={"announcement_id": announcement_id, "user_id": user_id}
         )
+        raise DatabaseError("Erreur lors de la suppression de l'annonce")
