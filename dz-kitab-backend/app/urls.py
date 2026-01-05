@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import AnnouncementAdvancedSearchView
-from .views.message_views import SendMessageView, ConversationListView, AnnouncementMessagesView
+from app.views.search_views import AnnouncementAdvancedSearchView
+from app.views.message_views import SendMessageView, ConversationListView, AnnouncementMessagesView
 
 urlpatterns = [
     path('announcements/search/', AnnouncementAdvancedSearchView.as_view(), name='announcement-advanced-search'),
