@@ -2,8 +2,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q, Max
-from ..models import Message
-from ..serializers.message_serializer import MessageSerializer
+from app.models import Message
+from app.serializers.message_serializer import MessageSerializer
 
 class SendMessageView(APIView):
     permission_classes = [IsAuthenticated]
