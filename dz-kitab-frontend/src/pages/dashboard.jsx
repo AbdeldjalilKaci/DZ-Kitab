@@ -5,7 +5,7 @@ import Footer from "../components/footer";
 import "./dashboard.css";
 
 // --- Données Mockées ---
-const houseSoldData = [
+const booksSoldData= [
   { month: "Jan", value: 1 }, { month: "Feb", value: 15 }, { month: "Mar", value: 0 }, { month: "Apr", value: 5 },
   { month: "May", value: 2 }, { month: "Jun", value: 13 }, { month: "Jul", value: 7 }, { month: "Aug", value: 7 },
   { month: "Sep", value: 4 }, { month: "Oct", value: 11 }, { month: "Nov", value: 8 }, { month: "Dec", value: 0 },
@@ -118,7 +118,7 @@ export default function Dashboard() {
             <div className="sales-overview-card">
               <h3 className="sales-overview-title">Sales Overview</h3>
               <ResponsiveContainer width="100%" height="90%">
-                <BarChart data={houseSoldData}>
+                <BarChart data={booksSoldData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" />
                   <YAxis />
