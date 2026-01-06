@@ -4,7 +4,7 @@ import Navbar from "../components/navbar";
 import "./dashboard.css";
 
 // --- Données Mockées ---
-const booksSoldDatas = [
+const booksSoldData = [
   { month: "Jan", value: 1 }, { month: "Feb", value: 15 }, { month: "Mar", value: 0 }, { month: "Apr", value: 5 },
   { month: "May", value: 2 }, { month: "Jun", value: 13 }, { month: "Jul", value: 7 }, { month: "Aug", value: 7 },
   { month: "Sep", value: 4 }, { month: "Oct", value: 11 }, { month: "Nov", value: 8 }, { month: "Dec", value: 0 },
