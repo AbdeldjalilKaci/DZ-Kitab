@@ -41,9 +41,9 @@ export default function App() {
           </PublicRoute>
         } />
         <Route path="/UsersAdmin" element={
-          <PublicRoute>
+          <PrivateRoute>
             <AdminUsers />
-          </PublicRoute>
+          </PrivateRoute>
         } />
         <Route path="/register" element={
           <PublicRoute>
@@ -51,9 +51,9 @@ export default function App() {
           </PublicRoute>
         } />
          <Route path="/MyAnnouncements" element={
-          <PublicRoute>
+          <PrivateRoute>
             <MyAnnouncements />
-          </PublicRoute>
+          </PrvateRoute>
         } />
 
         <Route path="/addannounce" element={
@@ -62,9 +62,9 @@ export default function App() {
           </PrivateRoute>
         } />
         <Route path="/dashboard" element={
-          <PublicRoute>
+          <PrivateRoute>
             <Dashboard/>
-          </PublicRoute>
+          </PrivateRoute>
         } />
         <Route path="/message" element={
           <PrivateRoute>
