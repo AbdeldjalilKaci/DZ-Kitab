@@ -5,10 +5,13 @@ from app.views.message_views import SendMessageView, ConversationListView, Annou
 from app.views.favorite_views import FavoriteView, FavoriteDeleteView
 from app.views.annonce_views import AnnonceViewSet
 from app.views.search_views import AnnouncementBasicSearchView
+from app.views.checkout_views import CheckoutView
 
 
 # Routes classiques
 urlpatterns = [
+    path('checkout/', CheckoutView.as_view(), name='checkout')
+
     path('announcements/search/basic/', AnnouncementBasicSearchView.as_view(), name='announcement-basic-search'),
 
     path('announcements/search/', AnnouncementAdvancedSearchView.as_view(), name='announcement-advanced-search'),
