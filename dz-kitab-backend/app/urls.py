@@ -9,6 +9,8 @@ from app.views.search_views import AnnouncementBasicSearchView
 
 # Routes classiques
 urlpatterns = [
+    path('announcements/search/basic/', AnnouncementBasicSearchView.as_view(), name='announcement-basic-search'),
+
     path('announcements/search/', AnnouncementAdvancedSearchView.as_view(), name='announcement-advanced-search'),
 
     path('messages/', SendMessageView.as_view(), name='send-message'),
