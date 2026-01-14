@@ -4,6 +4,8 @@ from app.views.search_views import AnnouncementAdvancedSearchView
 from app.views.message_views import SendMessageView, ConversationListView, AnnouncementMessagesView
 from app.views.favorite_views import FavoriteView, FavoriteDeleteView
 from app.views.annonce_views import AnnonceViewSet
+from app.views.search_views import AnnouncementBasicSearchView
+
 
 # Routes classiques
 urlpatterns = [
