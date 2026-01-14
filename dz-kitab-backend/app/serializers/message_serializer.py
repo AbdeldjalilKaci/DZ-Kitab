@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from ..models import Message
+from app.models.message import Message
 from app.moderation import is_content_safe
 
 class MessageSerializer(serializers.ModelSerializer):
