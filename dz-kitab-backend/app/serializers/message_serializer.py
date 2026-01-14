@@ -1,5 +1,14 @@
 from rest_framework import serializers
 from ..models import Message
+from app.moderation import is_content_safe
+
+class MessageSerializer(serializers.ModelSerializer):
+    # ton code existant ...
+
+    def validate_content(self, value):
+        if not is_content_safe(value):
+            raise serializers.ValidationError("Message contenant du contenu interdit.")
+        return value
 
 class MessageSerializer(serializers.ModelSerializer):
 
