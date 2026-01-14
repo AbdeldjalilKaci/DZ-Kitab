@@ -4,6 +4,13 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.parsers import MultiPartParser, FormParser
 from app.models.annonce import Annonce
 from app.serializers.annonce_serializer import AnnonceSerializer
+from app.pagination.announcement_pagination import AnnouncementSearchPagination
+
+class AnnonceViewSet(ModelViewSet):
+    queryset = Announcement.objects.all()
+    serializer_class = AnnouncementSerializer
+    pagination_class = AnnouncementSearchPagination
+
 
 class AnnonceViewSet(viewsets.ModelViewSet):
     """
