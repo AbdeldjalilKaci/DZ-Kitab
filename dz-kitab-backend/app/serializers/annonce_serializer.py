@@ -1,28 +1,7 @@
 from rest_framework import serializers
-from app.models.annonce import Annonce
-from app.moderation import is_content_safe
+from app.models.book import Announcement  # ou Annonce si renommé
 
-class AnnonceSerializer(serializers.ModelSerializer):
-    # ton code existant ...
-
-    def validate_title(self, value):
-        if not is_content_safe(value):
-            raise serializers.ValidationError("Titre contenant du contenu interdit.")
-        return value
-
-    def validate_author(self, value):
-        if not is_content_safe(value):
-            raise serializers.ValidationError("Nom de l'auteur contenant du contenu interdit.")
-        return value
-
-    def validate(self, data):
-        # Exemple : vérifier le texte de description si tu en as
-        description = data.get("description", "")
-        if not is_content_safe(description):
-            raise serializers.ValidationError("Description contenant du contenu interdit.")
-        return data
-
-class AnnonceSerializer(serializers.ModelSerializer):
+class AnnouncementSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Annonce
-        fields = '__all__'
+        model = Announcement
+        fields = '__all__'  # ou liste explicite : ['id', 'book', 'user', 'price', ...]
