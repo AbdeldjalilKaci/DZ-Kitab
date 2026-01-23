@@ -5,11 +5,16 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { NotFound } from "./NotFound";
 import AddAnnounce from "./pages/AddNewAnnounce";
+import MyAnnouncements from "./pages/MyAnnouncements";
+import Dashboard from "./pages/dashboard";
 import Messages from "./pages/Messages";
 import Listing from "./pages/Listing";
 import Wishlist from "./pages/Wishlist";
 import BookDetails from "./pages/BookDetails";
-import "./App.css";
+import AdminUsers from "./pages/Admin/UsersAdmin";
+import AnnouncementsAdmin from "./pages/Admin/AnnouncementsAdmin";
+import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
+
 import "./style.css";
 import MyAnnouncements from "./pages/MyAnnouncements";
 import { getCookie } from "./utils/cookies";
@@ -25,6 +30,7 @@ const PublicRoute = ({ children }) => {
 };
 
 
+
 export default function App() {
   return (
     <Routes>
@@ -36,9 +42,29 @@ export default function App() {
             <Login />
           </PublicRoute>
         } />
+        <Route path="/UsersAdmin" element={
+          <PublicRoute>
+            <AdminUsers />
+          </PublicRoute>
+        } />
+         <Route path="/AnnouncementsAdmin" element={
+          <PublicRoute>
+            <AnnouncementsAdmin />
+          </PublicRoute>
+        } />
         <Route path="/register" element={
           <PublicRoute>
             <Register />
+          </PublicRoute>
+        } />
+         <Route path="/MyAnnouncements" element={
+          <PrivateRoute>
+            <MyAnnouncements />
+          </PrivateRoute>
+        } />
+        <Route path="/DashboardAdmin" element={
+          <PublicRoute>
+            <DashboardAdmin />
           </PublicRoute>
         } />
 
@@ -46,6 +72,11 @@ export default function App() {
           <PrivateRoute>
             <AddAnnounce />
           </PrivateRoute>
+        } />
+        <Route path="/dashboard" element={
+          <PublicRoute>
+            <Dashboard/>
+          </PublicRoute>
         } />
         <Route path="/message" element={
           <PrivateRoute>
