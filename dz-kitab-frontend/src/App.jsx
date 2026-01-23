@@ -16,7 +16,7 @@ import AnnouncementsAdmin from "./pages/Admin/AnnouncementsAdmin";
 import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
 
 import "./style.css";
-
+import MyAnnouncements from "./pages/MyAnnouncements";
 import { getCookie } from "./utils/cookies";
 
 const PrivateRoute = ({ children }) => {
@@ -81,6 +81,11 @@ export default function App() {
         <Route path="/message" element={
           <PrivateRoute>
             <Messages />
+          </PrivateRoute>
+        } />
+        <Route path="/myannouncements" element={
+          <PrivateRoute>
+            <MyAnnouncements />
           </PrivateRoute>
         } />
         <Route path="/catalog" element={<Listing />} />
