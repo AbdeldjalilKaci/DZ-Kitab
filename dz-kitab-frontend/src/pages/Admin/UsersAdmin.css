@@ -141,6 +141,8 @@
   border-radius: 0.375rem;
   font-size: 0.8125rem;
   font-weight: 600;
+  min-width: 70px;
+  text-align: center;
 }
 
 .status.active {
@@ -157,6 +159,7 @@
 .actions {
   display: flex;
   gap: 0.5rem;
+  width: 200px;
 }
 
 /* ===== BUTTONS ===== */
@@ -168,6 +171,9 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  width: 90px;
+  text-align: center;
+  flex-shrink: 0;
 }
 
 .btn:hover {
@@ -186,6 +192,7 @@
 .btn-delete {
   background-color: #ef4444;
   color: white;
+  width: 75px;
 }
 
 .btn-delete:hover {

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import "./MyAnnouncements.css";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
+import "./AnnouncementsAdmin.css";
+import NavAdmin from "./navbarAdmin";
+
 import axios from "axios";
 import {FaCheckCircle, FaExchangeAlt, FaTimesCircle } from "react-icons/fa";
 
-const MyAnnouncements = () => {
+const Announcements = () => {
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -38,7 +38,7 @@ const MyAnnouncements = () => {
 
   // ✅ Charger les annonces de l'utilisateur connecté (AVEC AUTH)
   useEffect(() => {
-    const fetchMyAnnouncements = async () => {
+    const fetchAnnouncements = async () => {
       try {
         setLoading(true);
         setError(null);
@@ -54,7 +54,7 @@ const MyAnnouncements = () => {
         
         console.log("Fetching announcements...");
         const response = await axios.get(
-          `${API_BASE_URL}/api/books/my-announcements`,
+          `${API_BASE_URL}/api/books/announcements`,
           getAuthHeaders() // ✅ AVEC authentification
         );
         
@@ -88,7 +88,7 @@ const MyAnnouncements = () => {
       }
     };
 
-    fetchMyAnnouncements();
+    fetchAnnouncements();
   }, []);
 
   // ✅ Charger les catégories depuis l'API
@@ -228,8 +228,7 @@ const MyAnnouncements = () => {
 
   return (
     <>
-      <Navbar />
-
+<NavAdmin />
       <div className="listing-page">
         <div className="listing-container">
           {/* Sidebar Filters */}
@@ -333,7 +332,6 @@ const MyAnnouncements = () => {
                   <option value="price-high">Price: High to Low</option>
                 </select>
 
-                <Link to="../AddNewAnnounce" className="publish-btn">+ Publish</Link>
               </div>
             </div>
 
@@ -396,7 +394,7 @@ const MyAnnouncements = () => {
                       </div>
                       <div className="book-info">
                         <h4 className="book-title">{ann.book?.title || "Title not available"}</h4>
-                        <div className="flex items-center gap-20 my-4">
+                        <div className="flex items-center gap-48 my-4">
                           <p className="book-price whitespace-nowrap">
     {ann.price} DA
   </p>
@@ -410,7 +408,6 @@ const MyAnnouncements = () => {
                                 <FaCheckCircle /> Active
                               </>
                             ) 
-                              
                              : ann.status?.toLowerCase() === "sold" || ann.status?.toLowerCase() === "vendu" ? (
                               <>
                                 <FaTimesCircle /> Sold
@@ -423,13 +420,8 @@ const MyAnnouncements = () => {
                       </div>
                     </Link>
                     <div className="flex gap-8 mt-4">
-                      <Link
-                        to={`/edit/${ann.id}`}
-                        className="flex-1 text-center border border-[#090df3] text-[#090df3]
-                                   rounded-xl py-2 text-sm font-medium hover:bg-[#090df3] hover:text-white transition"
-                      >
-                        Modify
-                      </Link>
+                      
+                      
 
                       <button
                         onClick={() => handleDelete(ann.id)}
@@ -475,9 +467,8 @@ const MyAnnouncements = () => {
         </div>
       </div>
 
-      <Footer />
     </>
   );
 };
 
-export default MyAnnouncements;
+export default Announcements;

@@ -12,6 +12,8 @@ import Listing from "./pages/Listing";
 import Wishlist from "./pages/Wishlist";
 import BookDetails from "./pages/BookDetails";
 import AdminUsers from "./pages/Admin/UsersAdmin";
+import AnnouncementsAdmin from "./pages/Admin/AnnouncementsAdmin";
+import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
 
 import "./style.css";
 
@@ -41,9 +43,14 @@ export default function App() {
           </PublicRoute>
         } />
         <Route path="/UsersAdmin" element={
-          <PrivateRoute>
+          <PublicRoute>
             <AdminUsers />
-          </PrivateRoute>
+          </PublicRoute>
+        } />
+         <Route path="/AnnouncementsAdmin" element={
+          <PublicRoute>
+            <AnnouncementsAdmin />
+          </PublicRoute>
         } />
         <Route path="/register" element={
           <PublicRoute>
@@ -53,7 +60,12 @@ export default function App() {
          <Route path="/MyAnnouncements" element={
           <PrivateRoute>
             <MyAnnouncements />
-          </PrvateRoute>
+          </PrivateRoute>
+        } />
+        <Route path="/DashboardAdmin" element={
+          <PublicRoute>
+            <DashboardAdmin />
+          </PublicRoute>
         } />
 
         <Route path="/addannounce" element={

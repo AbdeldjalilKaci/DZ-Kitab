@@ -19,11 +19,13 @@ function NavAdmin() {
   </Link>
 </div>
 
-      <div className="links">
-        <Link to="/">Home</Link>
-        <Link to="/UsersAdmin">User management </Link>
-<Link to="/AnnouncementsAdmin">Announcements management</Link>
-      </div>
+     <div className="links flex gap-5">
+  <Link to="/">Home</Link>
+  <Link to="/UsersAdmin">User management</Link>
+  <Link to="/AnnouncementsAdmin">Announcements management</Link>
+  <Link to="/DashboardAdmin">Dashboard</Link>
+</div>
+
      
         <Link to="/dashboard">
   <div className="w-9 h-9 rounded-full overflow-hidden cursor-pointer">
