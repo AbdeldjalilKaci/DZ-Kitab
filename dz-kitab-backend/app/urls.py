@@ -6,7 +6,7 @@ from app.views.message_views import (
     SendMessageView,
     ConversationListView,
     AnnouncementMessagesView,
-    MessageViewSet  # pour CRUD DRF complet
+    MessageViewSet  # CRUD complet DRF
 )
 from app.views.favorite_views import FavoriteView, FavoriteDeleteView
 from app.views.annonce_views import AnnonceViewSet
@@ -33,8 +33,9 @@ urlpatterns = [
 
 # --- Routes CRUD DRF ---
 router = DefaultRouter()
-router.register(r'annonces', AnnonceViewSet, basename='annonce')
-router.register(r'messages-crud', MessageViewSet, basename='message')  # CRUD complet DRF pour messages
+router.register(r'annonces', AnnonceViewSet, basename='annonce')        # CRUD complet annonces
+router.register(r'messages-crud', MessageViewSet, basename='message')   # CRUD complet messages
 
 # Ajouter les routes DRF au urlpatterns existants
 urlpatterns += router.urls
+
