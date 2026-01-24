@@ -8,3 +8,4 @@ from app.models.rating import Rating, SellerStats
 from app.models.user_suspension import UserSuspension, RatingAlert
 from app.models.wishlist import Wishlist
 from app.models.message import Message, Conversation, MessageStatus
+from app.models.curriculum import Curriculum, RecommendedBook, BookCurriculumMatch
