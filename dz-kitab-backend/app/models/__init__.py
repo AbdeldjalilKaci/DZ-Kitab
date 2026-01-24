@@ -7,5 +7,4 @@ from app.models.notification import Notification, NotificationPreference
 from app.models.rating import Rating, SellerStats
 from app.models.user_suspension import UserSuspension, RatingAlert
 from app.models.wishlist import Wishlist
-from .favorite import Favorite
-
+from app.models.message import Message, Conversation, MessageStatus
