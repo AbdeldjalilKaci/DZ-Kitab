@@ -24,9 +24,10 @@ class User(Base):
     university = Column(Enum(UniversityEnum), nullable=True)
     phone_number = Column(String, nullable=True)
     is_active = Column(Boolean, default=True, index=True)
+    is_admin = Column(Boolean, default=False, index=True) 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-
+    profile_picture_url = Column(String, nullable=True)
     # Relationships
     announcements = relationship(
         "Announcement", 
@@ -94,3 +95,4 @@ class User(Base):
 
     def __repr__(self):
         return f"<User(id={self.id}, email={self.email}, username={self.username})>"
+
