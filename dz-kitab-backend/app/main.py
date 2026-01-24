@@ -1,6 +1,6 @@
 # app/main.py
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from pathlib import Path
@@ -9,7 +9,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError, IntegrityError
 from jose import JWTError
 
-from app.routers import upload, books, condition, ratings, notifications, auth, wishlist, admin, recommendations, dashboard, messages
+from app.routers import (
+    upload, books, condition, ratings, notifications, auth, 
+    wishlist, admin, recommendations, dashboard, messages, 
+    curriculum  # NOUVEAU
+)
 from app.database import engine, Base, DATABASE_URL
 from app.core.errors import (
     dzkitab_exception_handler,
@@ -23,7 +27,9 @@ from app.core.errors import (
 from app.core.cors import configure_cors, add_cors_debug_middleware
 from app.core.logging_config import setup_logging, RequestLoggingMiddleware
 import app.models
+
 Base.metadata.create_all(bind=engine)
+
 # ===============================
 # WAIT FOR DATABASE
 # ===============================
@@ -55,8 +61,8 @@ Base.metadata.create_all(bind=engine)
 # ===============================
 app = FastAPI(
     title="DZ-Kitab API",
-    version="2.0.0",
-    description="API pour la plateforme d'échange de livres universitaires",
+    version="2.1.0",  # Version mise à jour
+    description="API pour la plateforme d'échange de livres universitaires avec système de recommandations par cursus",
     docs_url="/docs",
     redoc_url="/redoc"
 )
@@ -75,21 +81,11 @@ app.add_middleware(RequestLoggingMiddleware)
 # ===============================
 # REGISTER EXCEPTION HANDLERS
 # ===============================
-
-# Nos exceptions personnalisées
 app.add_exception_handler(DZKitabException, dzkitab_exception_handler)
-
-# Exceptions FastAPI/Pydantic
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
-
-# Exceptions SQLAlchemy
 app.add_exception_handler(IntegrityError, integrity_error_handler)
 app.add_exception_handler(OperationalError, operational_error_handler)
-
-# Exceptions JWT
 app.add_exception_handler(JWTError, jwt_error_handler)
-
-# Exception générale (catch-all)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # ===============================
@@ -112,6 +108,7 @@ app.include_router(dashboard.router, prefix="/api/dashboard", tags=["User Dashbo
 app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(messages.router, prefix="/api/messages", tags=["Messages"])
+app.include_router(curriculum.router, prefix="/api/curriculum", tags=["Curriculum"])  # NOUVEAU
 
 # ===============================
 # ROOT ENDPOINTS
@@ -121,7 +118,7 @@ app.include_router(messages.router, prefix="/api/messages", tags=["Messages"])
 def read_root():
     return {
         "message": "Bienvenue sur DZ-Kitab API!",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "documentation": "/docs",
         "status": "operational",
         "features": [
@@ -133,6 +130,7 @@ def read_root():
             "✅ Notifications en temps réel",
             "✅ Suspension automatique",
             "✅ Recommandations par domaine",
+            "✅ Web Scraping & Badges Cursus",  # NOUVEAU
             "✅ Gestion d'erreurs avancée",
             "✅ CORS configuré"
         ],
@@ -145,7 +143,8 @@ def read_root():
             "notifications": "/api/notifications/*",
             "wishlist": "/api/wishlist/*",
             "admin": "/api/admin/*", 
-            "recommendations": "/api/recommendations/*" 
+            "recommendations": "/api/recommendations/*",
+            "curriculum": "/api/curriculum/*"  # NOUVEAU
         }
     }
 
@@ -165,7 +164,7 @@ def health_check():
     return {
         "status": "healthy" if db_status == "connected" else "unhealthy",
         "database": db_status,
-        "version": "2.0.0",
+        "version": "2.1.0",
         "timestamp": time.time()
     }
 
@@ -176,6 +175,7 @@ def get_stats():
     from app.models.user import User
     from app.models.book import Announcement
     from app.models.rating import Rating
+    from app.models.curriculum import Curriculum
     
     db = SessionLocal()
     try:
@@ -185,12 +185,14 @@ def get_stats():
             Announcement.status == "Active"
         ).count()
         total_ratings = db.query(Rating).count()
+        total_curriculums = db.query(Curriculum).count()
         
         return {
             "total_users": total_users,
             "total_announcements": total_announcements,
             "active_announcements": active_announcements,
-            "total_ratings": total_ratings
+            "total_ratings": total_ratings,
+            "total_curriculums": total_curriculums
         }
     finally:
         db.close()
@@ -209,6 +211,7 @@ async def startup_event():
     print(f"🔍 Health Check: http://localhost:8000/health")
     print(f"📊 Statistics: http://localhost:8000/stats")
     print(f"🎯 Recommendations: http://localhost:8000/api/recommendations/test")
+    print(f"📚 Curriculum: http://localhost:8000/api/curriculum/test")  # NOUVEAU
     print("=" * 60)
     
 @app.on_event("shutdown")
@@ -218,4 +221,4 @@ async def shutdown_event():
     print("👋 DZ-Kitab API Shutting Down...")
     print("=" * 60)
 
-print("✅ Application ready! Access: http://localhost:8000/docs"
+print("✅ Application ready! Access: http://localhost:8000/docs")
