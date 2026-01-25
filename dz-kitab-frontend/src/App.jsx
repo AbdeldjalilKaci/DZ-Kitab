@@ -16,6 +16,7 @@ import AnnouncementsAdmin from "./pages/Admin/AnnouncementsAdmin";
 import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
 import Notifications from "./pages/Notifications";
 import ContactSeller from "./pages/ContactSeller";
+import EditAnnounce from "./pages/EditAnnounce";
 import "./style.css";
 import { getCookie } from "./utils/cookies";
 
@@ -74,7 +75,7 @@ export default function App() {
         } />
         <Route path="/edit/:id" element={
           <PrivateRoute>
-            <AddAnnounce />
+            <EditAnnounce />
           </PrivateRoute>
         } />
         <Route path="/dashboard" element={

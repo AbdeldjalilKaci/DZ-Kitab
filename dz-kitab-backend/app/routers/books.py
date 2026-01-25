@@ -523,6 +523,18 @@ def update_announcement(
     if update_data.publication_date is not None:
         announcement.publication_date = update_data.publication_date
     
+    # Update Book fields if provided
+    book = db.query(Book).filter(Book.id == announcement.book_id).first()
+    if book:
+        if update_data.title is not None:
+            book.title = update_data.title
+        if update_data.authors is not None:
+            book.authors = update_data.authors
+        if update_data.publisher is not None:
+            book.publisher = update_data.publisher
+        if update_data.cover_image_url is not None:
+            book.cover_image_url = update_data.cover_image_url
+            
     db.commit()
     db.refresh(announcement)
     

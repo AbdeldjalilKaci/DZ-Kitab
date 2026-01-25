@@ -121,6 +121,10 @@ class AnnouncementUpdate(BaseModel):
     custom_images: Optional[List[str]] = None
     page_count: Optional[int] = Field(None, gt=0)
     publication_date: Optional[str] = None
+    title: Optional[str] = None
+    authors: Optional[str] = None
+    publisher: Optional[str] = None
+    cover_image_url: Optional[str] = None
 
 class AnnouncementResponse(BaseModel):
     id: int

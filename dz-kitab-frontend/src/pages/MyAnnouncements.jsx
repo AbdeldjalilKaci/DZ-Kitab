@@ -293,7 +293,6 @@ const MyAnnouncements = () => {
                   <option value="price-high">Price: High to Low</option>
                 </select>
 
-                <Link to="../AddNewAnnounce" className="publish-btn">+ Publish</Link>
               </div>
             </div>
 
