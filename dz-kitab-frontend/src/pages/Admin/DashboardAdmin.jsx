@@ -2,41 +2,18 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area } from "recharts";
 import NavAdmin from "./navbarAdmin";
+import api from "../../utils/api";
 
-// --- Mock Data ---
-const mockMetrics = {
-  totalUsers: 1389,
-  totalListings: 4021,
-  activeListings: 890,
-  activeUsers30d: 1127,
-  newListings30d: 489,
-  activeUsersTrend: [{ value: 1050 }, { value: 1120 }, { value: 1180 }, { value: 1247 }, { value: 1310 }, { value: 1389 }],
-  newListingsTrend: [{ value: 3456 }, { value: 3598 }, { value: 3712 }, { value: 3845 }, { value: 3892 }, { value: 4021 }]
+// --- Empty Data for Initial State ---
+const initialMetrics = {
+  totalUsers: 0,
+  totalListings: 0,
+  activeListings: 0,
+  activeUsers30d: 0,
+  newListings30d: 0,
+  activeUsersTrend: [],
+  newListingsTrend: []
 };
-
-const mockNewListings = [
-  { month: "Jan", value: 234 }, { month: "Feb", value: 267 }, { month: "Mar", value: 298 },
-  { month: "Apr", value: 312 }, { month: "May", value: 345 }, { month: "Jun", value: 378 },
-  { month: "Jul", value: 402 }, { month: "Aug", value: 389 }, { month: "Sep", value: 421 },
-  { month: "Oct", value: 445 }, { month: "Nov", value: 467 }, { month: "Dec", value: 489 }
-];
-
-const mockTopBooks = [
-  { title: "Python Algorithms", category: "Computer Science", listings: 47, image: "https://images.unsplash.com/photo-1589998059171-988d887df646?w=80&h=80&fit=crop", percentage: 98 },
-  { title: "Mathematics 1st Year", category: "Academic", listings: 42, image: "https://images.unsplash.com/photo-1596495577886-d920f1fb7238?w=80&h=80&fit=crop", percentage: 89 },
-  { title: "Physics Senior Year", category: "Academic", listings: 38, image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=80&h=80&fit=crop", percentage: 81 },
-  { title: "Introduction to React", category: "Computer Science", listings: 35, image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=80&h=80&fit=crop", percentage: 74 },
-  { title: "Algerian History", category: "History", listings: 31, image: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=80&h=80&fit=crop", percentage: 66 },
-  { title: "Organic Chemistry", category: "Science", listings: 28, image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=80&h=80&fit=crop", percentage: 60 }
-];
-
-const mockSalesByCategory = [
-  { name: "Computer Science", value: 1247, color: "#3B82F6", percentage: 31 },
-  { name: "Academic", value: 1089, color: "#10B981", percentage: 27 },
-  { name: "Science", value: 845, color: "#F59E0B", percentage: 21 },
-  { name: "Literature", value: 562, color: "#8B5CF6", percentage: 14 },
-  { name: "History", value: 278, color: "#EF4444", percentage: 7 }
-];
 
 function MetricCard({ title, value, chart }) {
   return (
@@ -67,7 +44,7 @@ function MiniLineChart({ data }) {
 function BookItem({ title, category, listings, image, percentage }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0', borderBottom: '1px solid #F3F4F6' }}>
-      <img src={image} alt={title} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
+      <img src={image || 'https://via.placeholder.com/60'} alt={title} style={{ width: '60px', height: '60px', borderRadius: '8px', objectFit: 'cover' }} />
       <div style={{ flex: 1 }}>
         <div style={{ fontSize: '14px', fontWeight: '600', color: '#111827', marginBottom: '4px' }}>{title}</div>
         <div style={{ fontSize: '12px', color: '#6B7280', marginBottom: '8px' }}>{category} • {listings} listings</div>
@@ -99,23 +76,80 @@ function CategoryItem({ name, value, color, percentage }) {
 // --- Main component ---
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [metrics, setMetrics] = useState({});
+  const [metrics, setMetrics] = useState(initialMetrics);
   const [newListings, setNewListings] = useState([]);
   const [topBooks, setTopBooks] = useState([]);
   const [salesByCategory, setSalesByCategory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch Dashboard Stats
+        const statsRes = await api.get('/api/admin/stats/dashboard');
+        const stats = statsRes.data;
 
-    // Use mocks for now
-    setMetrics(mockMetrics);
-    setNewListings(mockNewListings);
-    setTopBooks(mockTopBooks);
-    setSalesByCategory(mockSalesByCategory);
+        // Map backend stats to frontend structure
+        setMetrics({
+          totalUsers: stats.users.total,
+          totalListings: stats.announcements.total,
+          activeListings: stats.announcements.active,
+          activeUsers30d: stats.users.active, // Approximation using 'active' status count
+          newListings30d: stats.announcements.new_this_week, // Using weekly data as proxy for now
+          // Placeholder trends (backend doesn't provide detailed history yet)
+          activeUsersTrend: [{ value: 0 }, { value: stats.users.active }],
+          newListingsTrend: [{ value: 0 }, { value: stats.announcements.new_this_week }]
+        });
+
+        // Fetch Popular Books
+        const popRes = await api.get('/api/admin/stats/popular-books?limit=5');
+        setTopBooks(popRes.data.books.map(b => ({
+          title: b.title,
+          category: b.category,
+          listings: b.listings,
+          percentage: b.percentage,
+          image: null // Add image if available in book object later
+        })));
+
+        // Fetch Sales By Category
+        const salesRes = await api.get('/api/admin/stats/sales-by-category');
+        const colors = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6", "#EF4444"];
+        setSalesByCategory(salesRes.data.categories.map((c, idx) => ({
+          name: c.category,
+          value: c.count,
+          percentage: c.percentage,
+          color: colors[idx % colors.length]
+        })));
+
+        // Mock chart data for New Listings Overview (since backend doesn't give monthly data yet)
+        setNewListings([
+          { month: "Jan", value: 0 }, { month: "Feb", value: 0 }, { month: "Mar", value: 0 },
+          { month: "Apr", value: 0 }, { month: "May", value: 0 }, { month: "Jun", value: 0 },
+          { month: "Jul", value: 0 }, { month: "Aug", value: 0 }, { month: "Sep", value: 0 },
+          { month: "Oct", value: 0 }, { month: "Nov", value: 0 }, { month: "Dec", value: 0 }
+        ]);
+
+      } catch (error) {
+        console.error("Error fetching admin dashboard data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
   }, [navigate]);
 
   const totalSales = salesByCategory.reduce((sum, cat) => sum + cat.value, 0);
+
+  if (loading) {
+    return (
+      <>
+        <NavAdmin />
+        <div style={{ padding: '40px', textAlign: 'center' }}>Loading Dashboard...</div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -133,13 +167,13 @@ export default function AdminDashboard() {
             <MetricCard title="Total Users" value={metrics.totalUsers} />
             <MetricCard title="Total Listings" value={metrics.totalListings} />
             <MetricCard title="Active Listings" value={metrics.activeListings} />
-            <MetricCard title="Active Users (30d)" value={metrics.activeUsers30d} chart={<MiniLineChart data={metrics.activeUsersTrend} />} />
-            <MetricCard title="New Listings (30d)" value={metrics.newListings30d} chart={<MiniLineChart data={metrics.newListingsTrend} />} />
+            <MetricCard title="Active Users" value={metrics.activeUsers30d} chart={<MiniLineChart data={metrics.activeUsersTrend} />} />
+            <MetricCard title="New Listings (Week)" value={metrics.newListings30d} chart={<MiniLineChart data={metrics.newListingsTrend} />} />
           </div>
 
           {/* NEW LISTINGS CHART */}
           <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', marginBottom: '32px' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>New Listings Overview</h3>
+            <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>New Listings Overview (Mock Data)</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={newListings}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -154,7 +188,7 @@ export default function AdminDashboard() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))', gap: '20px' }}>
             <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
               <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>Most Popular Books</h3>
-              {topBooks.map((book, i) => <BookItem key={i} {...book} />)}
+              {topBooks.length > 0 ? topBooks.map((book, i) => <BookItem key={i} {...book} />) : <p>No popular books yet.</p>}
             </div>
 
             <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>

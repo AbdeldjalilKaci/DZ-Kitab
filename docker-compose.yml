@@ -1,0 +1,55 @@
+services:
+#  db:
+#    image: postgres:15
+#    container_name: dzkitab_db
+#    restart: always
+#    environment:
+#      POSTGRES_USER: user
+#      POSTGRES_PASSWORD: password
+#      POSTGRES_DB: dzkitab
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./dz-kitab-backend
+      dockerfile: Dockerfile
+    container_name: dzkitab_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:Jalil.com0@host.docker.internal:5432/dz_kitab
+      - JWT_SECRET_KEY=dz_kitab_secret_key_123_change_me
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+    # Commenting out volume mounts to prevent Windows/Linux file system conflicts
+    # For development, you'll need to rebuild the container after code changes
+    # volumes:
+    #   - ./dz-kitab-backend:/app
+    #   - /app/uploads
+#    depends_on:
+#      - db
+
+  frontend:
+    build:
+      context: ./dz-kitab-frontend
+      dockerfile: Dockerfile
+    container_name: dzkitab_frontend
+    restart: always
+    environment:
+      - VITE_API_URL=http://10.34.115.153:8000
+    ports:
+      - "5173:5173"
+    # Commenting out volume mounts to prevent Windows/Linux module conflicts
+    # For development with hot reload, you'll need to rebuild the container after code changes
+    # volumes:
+    #   - ./dz-kitab-frontend:/app
+    #   - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

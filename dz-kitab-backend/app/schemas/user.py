@@ -121,18 +121,14 @@ class UserResponse(BaseModel):
     phone_number: Optional[str] = None
     profile_picture_url: Optional[str] = None
     is_active: bool
+    is_admin: bool = False
+    role: Optional[str] = "user"
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
-    profile_picture_url: Optional[str] = None 
-    
-    is_active: bool
-    created_at: str
-    updated_at: Optional[str] = None
     
     class Config:
         from_attributes = True
-    class Config:
-        from_attributes = True
+
 class UserUpdate(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None

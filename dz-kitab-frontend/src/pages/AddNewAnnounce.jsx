@@ -349,7 +349,7 @@ function AddAnnounce() {
                                         {loading ? 'Searching...' : <><FaSearch /> Search</>}
                                     </button>
                                 </div>
-                                <p className="hint-text">Enter ISBN to auto-fill details (Google Books API)</p>
+                                <p className="hint-text">Enter ISBN to auto-fill details</p>
 
                                 <div className="manual-entry-link">
                                     <span onClick={() => setManualEntry(true)} className="text-[#134BD7] cursor-pointer underline">

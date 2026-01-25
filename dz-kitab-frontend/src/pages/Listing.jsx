@@ -26,19 +26,35 @@ const Listing = () => {
     const fetchAnnouncements = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/api/books/announcements');
+        // Build query params
+        const params = { limit: 100 }; // Fetch more items
+        if (searchQuery) params.search = searchQuery;
+        if (selectedDomains.length > 0) {
+          // Note: Backend currently supports single category filter basically. 
+          // If multiple selected, we handled client side previously? 
+          // For now let's pass the first one or handle mixed stats. 
+          // Actually, best to fetch broad and filter client side if backend is limited, 
+          // OR simply update backend to allow IN list.
+          // Given time constraints, let's pass specific search but Keep fetch generic if no search.
+          // AND the backend 'search' handles Title/Author.
+        }
+
+        // Let's pass the search directly to backend
+        const response = await api.get('/api/books/announcements', { params });
+
         // Map backend announcement to the format expected by the frontend
         const mappedBooks = response.data.announcements.map(ann => ({
           id: ann.id,
           title: ann.book.title,
-          author: ann.book.authors,
+          author: ann.book.authors ? ann.book.authors.split(',') : ['Unknown'], // Ensure array
           price: ann.price,
-          rating: 4.5, // Backend might not have this yet, or we use a default
+          rating: 4.5,
           image: ann.book.cover_image_url || 'https://via.placeholder.com/150',
           domain: ann.category || 'General',
           description: ann.description,
           isbn: ann.book.isbn,
-          status: ann.status
+          status: ann.status,
+          user: ann.user // Pass seller info
         }));
         setBooks(mappedBooks);
       } catch (error) {
@@ -57,18 +73,29 @@ const Listing = () => {
       }
     };
 
-    fetchAnnouncements();
+    // Debounce search fetch could be good, but for now direct 
+    const timer = setTimeout(() => {
+      fetchAnnouncements();
+    }, 500); // 500ms debounce
+
     fetchCategories();
-  }, []);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]); // Re-fetch when searchQuery changes
 
   // Handle category query parameter from landing page
   useEffect(() => {
     const categoryFromUrl = searchParams.get('category');
+    const searchFromUrl = searchParams.get('search');
+
     if (categoryFromUrl && categories.length > 0) {
-      // Check if this category exists in our categories list
       if (categories.includes(categoryFromUrl) && !selectedDomains.includes(categoryFromUrl)) {
         setSelectedDomains([categoryFromUrl]);
       }
+    }
+
+    if (searchFromUrl) {
+      setSearchQuery(searchFromUrl);
     }
   }, [searchParams, categories]);
 
@@ -130,11 +157,13 @@ const Listing = () => {
 
   // Filter by search query
   if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
     filteredBooks = filteredBooks.filter(
       (book) =>
-        book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        book.domain.toLowerCase().includes(searchQuery.toLowerCase())
+        book.title.toLowerCase().includes(query) ||
+        (book.author && book.author.map(a => a.toLowerCase()).join(' ').includes(query)) ||
+        book.domain.toLowerCase().includes(query) ||
+        (book.isbn && book.isbn.includes(query))
     );
   }
 

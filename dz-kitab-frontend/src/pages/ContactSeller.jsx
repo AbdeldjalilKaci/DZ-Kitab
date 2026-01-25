@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import api from "../utils/api";
 import "./ContactSeller.css";
 
-const ContactSellerForm = ({ book, onClose, onSubmit }) => {
+const ContactSeller = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Get book from navigation state (passed from Listing or BookDetails)
+  const book = location.state?.book;
+
   const [formData, setFormData] = useState({
-    email: "",
     address: "",
     phone: "",
     message: "",
   });
+  const [loading, setLoading] = useState(false);
 
+  // Redirect if no book data
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      email: "jammy@gmail.com",
-    }));
-  }, []);
+    if (!book) {
+      // Optional: Could fetch by ID from URL if we changed route to /contact-seller/:id
+      // For now, assume state passing.
+    }
+  }, [book, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,27 +32,89 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.address || !formData.phone) {
       alert("Address and phone number are required");
       return;
     }
 
-    onSubmit({
-      ...formData,
-      title: book?.title,
-    });
+    if (!book) return;
+
+    try {
+      setLoading(true);
+      // Create conversation or send message
+      // Endpoint: POST /api/messages/conversations?other_user_id=...&announcement_id=...
+      // Then POST message?
+      // Or simpler: The backend might not have a direct "Contact Seller" single endpoint yet based on previous files.
+      // Let's assume we create a conversation or send a message.
+      // Checking backend standard: usually start conversation with initial message.
+      // Let's try to create a conversation first.
+
+      // 1. Check/Create conversation
+      // For simplicity, let's assume we just send a message to start it.
+      // We need the seller's user ID.
+      // 'book' object usually comes from Listing, which has 'user' (seller) object?
+      // Let's verify structure. In Listing.jsx: book object has title, author... but maybe not user_id explicitly in the manual map?
+      // Listing.jsx map: id, title, author... user_id is in response.data.announcements but mappedBooks might miss it.
+      // We need to ensure we pass the seller ID.
+
+      // If we don't have seller ID, we can't send.
+      // Assuming book.user_id or book.seller_id exists.
+
+      const sellerId = book.user?.id || book.user_id;
+
+      if (!sellerId) {
+        alert("Error: Seller information missing.");
+        return;
+      }
+
+      // Construct initial message
+      const fullMessage = `
+**Interest in:** ${book.title}
+**Contact Info:**
+Phone: ${formData.phone}
+Address: ${formData.address}
+
+${formData.message}
+        `.trim();
+
+      // API call to create conversation/send message
+      // Using the logic from Messages.jsx: 
+      // POST /api/messages/conversations/{id}/messages ?
+      // We first need a conversation. 
+      // Let's try POST /api/messages/conversations with params
+
+      await api.post('/api/messages/conversations', {
+        participant_id: sellerId,
+        announcement_id: book.id, // announcement ID
+        initial_message: fullMessage
+      });
+
+      alert("Message sent successfully!");
+      navigate('/message'); // Go to messages to see the chat
+
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("Failed to send message. " + (error.response?.data?.detail || ""));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCancel = () => {
-    setFormData({
-      email: "jammy@gmail.com",
-      address: "",
-      phone: "",
-      message: "",
-    });
-    if (onClose) onClose();
+    navigate(-1);
   };
+
+  if (!book) {
+    return (
+      <div className="contact-seller-wrapper">
+        <div className="container mx-auto p-4 text-center">
+          <h2>No book selected.</h2>
+          <button onClick={() => navigate('/catalog')} className="btn btn-primary">Go to Catalog</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="contact-seller-wrapper">
@@ -67,8 +137,7 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
                 <div className="book-cover-placeholder">
                   <div className="placeholder-content">
                     <div className="placeholder-icon">✕</div>
-                    <div className="placeholder-title">THE MATH</div>
-                    <div className="placeholder-subtitle">BOOK</div>
+                    <div className="placeholder-title">{book.title}</div>
                   </div>
                 </div>
               )}
@@ -86,11 +155,12 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
               />
             </div>
 
+            {/* Show Seller Email if available */}
             <div className="input-group">
-              <label className="input-label">Email</label>
+              <label className="input-label">Seller Email</label>
               <input
                 type="email"
-                value={formData.email}
+                value={book.user?.email || "N/A"}
                 disabled
                 className="input-field input-readonly"
               />
@@ -98,7 +168,7 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
 
             <div className="input-group">
               <label className="input-label">
-                Address <span style={{ color: "red" }}>*</span>
+                My Address <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 type="text"
@@ -113,7 +183,7 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
 
             <div className="input-group">
               <label className="input-label">
-                Phone <span style={{ color: "red" }}>*</span>
+                My Phone <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 type="tel"
@@ -142,8 +212,8 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
             <button className="btn btn-cancel" onClick={handleCancel}>
               Cancel
             </button>
-            <button className="btn btn-send" onClick={handleSubmit}>
-              Send
+            <button className="btn btn-send" onClick={handleSubmit} disabled={loading}>
+              {loading ? "Sending..." : "Send"}
             </button>
           </div>
         </div>
@@ -152,4 +222,4 @@ const ContactSellerForm = ({ book, onClose, onSubmit }) => {
   );
 };
 
-export default ContactSellerForm;
+export default ContactSeller;

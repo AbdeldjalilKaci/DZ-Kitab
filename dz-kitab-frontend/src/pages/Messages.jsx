@@ -1,66 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './messages.css';
 import { CiSearch } from "react-icons/ci";
+import api from "../utils/api";
 const Messages = () => {
-    const [activeChat, setActiveChat] = useState(0);
+    const [activeChat, setActiveChat] = useState(null); // Use conversation ID or Object
     const [newMessage, setNewMessage] = useState('');
-    const [conversations, setConversations] = useState([
-        {
-            id: 0,
-            name: 'Karim Benali',
-            initials: 'KB',
-            lastMessage: 'Oui, il est toujours lfohawifhrihgiehirusenfse ruivhsidhinvsien',
-            time: '15:10',
-            online: true,
-            messages: [
-                { id: 1, text: 'Bonjour, le livre Artificial Intelligence est-il toujours disponible ?', sender: 'them', time: '15:06' },
-                { id: 2, text: 'Oui, il est toujours disponible. Il est en excellent état !', sender: 'me', time: '15:10' }
-            ]
-        },
-        {
-            id: 1,
-            name: 'Sarah Mourad',
-            initials: 'SM',
-            lastMessage: 'Bonjour, il y a...',
-            time: '22:43',
-            online: false,
-            messages: [
-                { id: 1, text: 'Bonjour, je voulais savoir si le livre est disponible en format numérique ?', sender: 'them', time: '22:43' },
-            ]
-        },
-        {
-            id: 2,
-            name: 'Sami Kamel',
-            initials: 'SK',
-            lastMessage: 'Désolé je peut pas...',
-            time: '09:30',
-            online: true,
-            messages: [
-                { id: 1, text: 'Désolé je peut pas vous le vendre pour le moment.', sender: 'them', time: '09:30' }
-            ]
-        }
-    ]);
+    const [conversations, setConversations] = useState([]);
+    const [messages, setMessages] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const handleSendMessage = (e) => {
-        e.preventDefault();
-        if (!newMessage.trim()) return;
-
-        const updatedConversations = [...conversations];
-        const activeConv = updatedConversations[activeChat];
-
-        const newMsg = {
-            id: activeConv.messages.length + 1,
-            text: newMessage,
-            sender: 'me',
-            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    // Fetch conversations on load
+    useEffect(() => {
+        const fetchConversations = async () => {
+            try {
+                const res = await api.get('/api/messages/conversations');
+                setConversations(res.data.conversations);
+                if (res.data.conversations.length > 0) {
+                    setActiveChat(res.data.conversations[0]); // Select first chat by default
+                }
+            } catch (error) {
+                console.error("Error fetching conversations:", error);
+            } finally {
+                setLoading(false);
+            }
         };
+        fetchConversations();
+    }, []);
 
-        activeConv.messages.push(newMsg);
-        setConversations(updatedConversations);
-        setNewMessage('');
+    // Fetch messages when activeChat changes
+    useEffect(() => {
+        if (activeChat) {
+            const fetchMessages = async () => {
+                try {
+                    const res = await api.get(`/api/messages/conversations/${activeChat.id}`);
+                    setMessages(res.data.messages);
+                } catch (error) {
+                    console.error("Error fetching messages:", error);
+                }
+            };
+            fetchMessages();
+        }
+    }, [activeChat]);
+
+    const handleSendMessage = async (e) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !activeChat) return;
+
+        try {
+            const res = await api.post(`/api/messages/conversations/${activeChat.id}/messages`, null, {
+                params: { content: newMessage }
+            });
+            // Add new message to UI immediately
+            setMessages([...messages, res.data]);
+            setNewMessage('');
+        } catch (error) {
+            console.error("Error sending message:", error);
+            alert("Failed to send message");
+        }
     };
-
-    const activeConversation = conversations[activeChat];
 
     return (
         <div className="messages-page">
@@ -74,21 +71,21 @@ const Messages = () => {
                     <div className="recent-conversations">
                         <h3 className="recent-title">Recent Conversations</h3>
                         <div className="conversations-list">
-                            {conversations.map((conv) => (
+                            {loading ? <p>Loading chats...</p> : conversations.map((conv) => (
                                 <div
                                     key={conv.id}
-                                    className={`conversation-item ${activeChat === conv.id ? 'active' : ''}`}
-                                    onClick={() => setActiveChat(conv.id)}
+                                    className={`conversation-item ${activeChat?.id === conv.id ? 'active' : ''}`}
+                                    onClick={() => setActiveChat(conv)}
                                 >
                                     <div className="avatar">
-                                        <span className="avatar-initials">{conv.initials}</span>
+                                        <span className="avatar-initials">{conv.other_user_username.substring(0, 2).toUpperCase()}</span>
                                     </div>
                                     <div className="conversation-info">
                                         <div className="conversation-header">
-                                            <span className="conversation-name">{conv.name}</span>
-                                            <span className="conversation-time">{conv.time}</span>
+                                            <span className="conversation-name">{conv.other_user_username}</span>
+                                            <span className="conversation-time">{new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                         </div>
-                                        <p className="last-message loading-dots ">{conv.lastMessage}</p>
+                                        <p className="last-message loading-dots ">{conv.last_message}</p>
                                     </div>
                                 </div>
                             ))}
@@ -97,55 +94,63 @@ const Messages = () => {
                 </div>
 
                 <div className="chat-area relative rounded-tl-[10px] ">
-                <div className="absolute left-0 top-0 h-full w-1 rounded-tr-[10px]  bg-linear-to-b from-[#e3e3fd]  to-[#e2dad8]"></div>
-                    <div className="chat-header">
-                        <div className="chat-contact-info">
-                            <div className="contact-avatar">
-                                <span className="avatar-initials">{activeConversation.initials}</span>
-                            </div>
-                            <div className="contact-details">
-                                <h3>{activeConversation.name}</h3>
-                                {activeConversation.online && (
-                                    <span className="contact-status">
-                                        <span className="online-dot"></span> En ligne
-                                    </span>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="chat-security-banner">
-                        <p>Conversation sécurisée - Email masqué</p>
-                    </div>
-
-                    <div className="messages-list">
-                        {activeConversation.messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className={`message ${msg.sender === 'me' ? 'sent' : 'received'}`}
-                            >
-                                <div className="message-content">
-                                    <p>{msg.text}</p>
+                    <div className="absolute left-0 top-0 h-full w-1 rounded-tr-[10px]  bg-linear-to-b from-[#e3e3fd]  to-[#e2dad8]"></div>
+                    {activeChat ? (
+                        <>
+                            <div className="chat-header">
+                                <div className="chat-contact-info">
+                                    <div className="contact-avatar">
+                                        <span className="avatar-initials">{activeChat.other_user_username.substring(0, 2).toUpperCase()}</span>
+                                    </div>
+                                    <div className="contact-details">
+                                        <h3>{activeChat.other_user_username}</h3>
+                                        {activeChat.announcement_title && (
+                                            <span className="text-sm text-gray-500">
+                                                Ref: {activeChat.announcement_title}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <span className="message-time">{msg.time}</span>
                             </div>
-                        ))}
-                    </div>
 
-                    <form className="message-input-form" onSubmit={handleSendMessage}>
-                        <div className="input-wrapper">
-                            <input
-                                type="text"
-                                placeholder="Taper pour ecrire..."
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                className="message-input"
-                            />
-                            <button type="submit" className="send-button">
-                                Envoyer
-                            </button>
+                            <div className="chat-security-banner">
+                                <p>Conversation sécurisée - Email masqué</p>
+                            </div>
+
+                            <div className="messages-list">
+                                {messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={`message ${msg.sender_id !== activeChat.other_user_id ? 'sent' : 'received'}`}
+                                    >
+                                        <div className="message-content">
+                                            <p>{msg.content}</p>
+                                        </div>
+                                        <span className="message-time">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <form className="message-input-form" onSubmit={handleSendMessage}>
+                                <div className="input-wrapper">
+                                    <input
+                                        type="text"
+                                        placeholder="Taper pour ecrire..."
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="message-input"
+                                    />
+                                    <button type="submit" className="send-button">
+                                        Envoyer
+                                    </button>
+                                </div>
+                            </form>
+                        </>
+                    ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500">
+                            Select a conversation to start messaging
                         </div>
-                    </form>
+                    )}
                 </div>
             </div>
         </div>

@@ -66,7 +66,7 @@ export const Category = () => {
                 {categories.map((category, index) => (
                     <Link
                         key={index}
-                        to={`/listing?category=${encodeURIComponent(category)}`}
+                        to={`/catalog?category=${encodeURIComponent(category)}`}
                         style={{ textDecoration: 'none' }}
                     >
                         <CategoryCard

@@ -1,27 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area } from "recharts";
-import Navbar from "../components/navbar";
-import Footer from "../components/footer";
 import "./dashboard.css";
-
-// --- Données Mockées ---
-const booksSoldData= [
-  { month: "Jan", value: 1 }, { month: "Feb", value: 15 }, { month: "Mar", value: 0 }, { month: "Apr", value: 5 },
-  { month: "May", value: 2 }, { month: "Jun", value: 13 }, { month: "Jul", value: 7 }, { month: "Aug", value: 7 },
-  { month: "Sep", value: 4 }, { month: "Oct", value: 11 }, { month: "Nov", value: 8 }, { month: "Dec", value: 0 },
-];
-const miniChartData1 = [{ value: 12 }, { value: 15 }, { value: 10 }, { value: 18 }, { value: 14 }, { value: 17 }];
-const miniChartData2 = [{ value: 8 }, { value: 6 }, { value: 10 }, { value: 7 }, { value: 9 }, { value: 10 }];
-const miniChartData3 = [{ value: 45 }, { value: 52 }, { value: 48 }, { value: 58 }, { value: 50 }, { value: 55 }];
-
-const topProperties = [
-  { name: "Roselands", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=80&h=80&fit=crop", percentage: 78 },
-  { name: "Wayside", image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=80&h=80&fit=crop", percentage: 93 },
-  { name: "Luminosa", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=80&h=80&fit=crop", percentage: 78 },
-  { name: "Good Residence", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=80&h=80&fit=crop", percentage: 85 },
-  { name: "Cyber Security Review", image: "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=80&h=80&fit=crop", percentage: 84 },
-  { name: "Antique Antiquites", image: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?w=80&h=80&fit=crop", percentage: 84 },
-];
+import api from "../utils/api";
 
 // --- Composants ---
 function MetricCard({ title, value, chart }) {
@@ -63,7 +43,7 @@ function MiniLineChart({ data }) {
 function PropertyItem({ name, image, percentage }) {
   return (
     <div className="property-item">
-      <img src={image} alt={name} className="property-item-img" />
+      <img src={image || 'https://via.placeholder.com/64'} alt={name} className="property-item-img" />
       <div className="property-item-content">
         <div className="property-item-name">{name}</div>
         <div className="property-item-progress-bg">
@@ -79,21 +59,97 @@ function PropertyItem({ name, image, percentage }) {
 }
 
 export default function Dashboard() {
-  const [formData, setFormData] = useState({ firstName: "Jane", lastName: "Doe", email: "jane@example.com" });
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total_listings: 0,
+    books_sold: 0,
+    purchase_requests: 0,
+    listings_for_sale: 0,
+    reserved_listings: 0,
+    unread_messages: 0
+  });
+  const [salesData, setSalesData] = useState([]);
+  const [popularListings, setPopularListings] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
+  const [profile, setProfile] = useState({ firstName: "", lastName: "", email: "" });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // 1. Overview Stats
+        const overviewRes = await api.get('/api/dashboard/overview');
+        setStats(overviewRes.data.stats);
+        setProfile({
+          firstName: overviewRes.data.user.username.split(" ")[0] || "User", // Fallback parsing
+          lastName: overviewRes.data.user.username.split(" ")[1] || "",
+          email: overviewRes.data.user.email
+        });
+
+        // 2. Sales Overview
+        try {
+          const salesRes = await api.get('/api/dashboard/sales-overview');
+          if (salesRes.data?.data) {
+            setSalesData(salesRes.data.data.map(d => ({ month: d.month, value: d.sales })));
+          }
+        } catch (e) {
+          console.warn("Sales data fetch failed");
+        }
+
+        // 3. Popular Listings
+        try {
+          const popularRes = await api.get('/api/dashboard/popular-listings');
+          setPopularListings(popularRes.data.listings.map(l => ({
+            name: l.title,
+            image: l.cover_image,
+            percentage: l.percentage
+          })));
+        } catch (e) {
+          console.warn("Popular listings fetch failed");
+        }
+
+        // 4. Recent Activity
+        try {
+          const activityRes = await api.get('/api/dashboard/recent-activity');
+          setRecentActivity(activityRes.data.activities);
+        } catch (e) {
+          console.warn("Recent activity fetch failed");
+        }
+
+      } catch (error) {
+        console.error("Dashboard loaded error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setProfile({ ...profile, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    alert("Profile updated successfully!");
+  const handleSubmit = async () => {
+    try {
+      await api.put('/api/dashboard/profile', {
+        first_name: profile.firstName,
+        last_name: profile.lastName,
+        // Email usually distinct logical update, but keeping simple
+      });
+      alert("Profile updated successfully!");
+    } catch (error) {
+      console.error("Update failed", error);
+      alert("Failed to update profile.");
+    }
   };
+
+  if (loading) return <div className="text-center p-10">Loading Dashboard...</div>;
+
+  // Mock mini charts for visual filler (since backend doesn't provide historical trend array yet)
+  const mockTrend = [{ value: 10 }, { value: 15 }, { value: 10 }, { value: 18 }, { value: 14 }, { value: 17 }];
 
   return (
     <>
-      <Navbar />
-
       <div className="dashboard-page">
         <div className="dashboard-container">
 
@@ -106,19 +162,19 @@ export default function Dashboard() {
           <div className="dashboard-top-grid">
             {/* 6 Cartes à gauche */}
             <div className="metrics-grid">
-              <MetricCard title="Total Listings" value={27} />
-              <MetricCard title="Books Sold" value={15} />
-              <MetricCard title="Purchase Requests" value={20} />
-              <MetricCard title="Listings for Sale" value={17} chart={<MiniLineChart data={miniChartData1} />} />
-              <MetricCard title="Listings for Exchange" value={10} chart={<MiniLineChart data={miniChartData2} />} />
-              <MetricCard title="Received Messages" value={55} chart={<MiniLineChart data={miniChartData3} />} />
+              <MetricCard title="Total Listings" value={stats.total_listings} />
+              <MetricCard title="Books Sold" value={stats.books_sold} />
+              <MetricCard title="Purchase Requests" value={stats.purchase_requests} />
+              <MetricCard title="Listings for Sale" value={stats.listings_for_sale} chart={<MiniLineChart data={mockTrend} />} />
+              <MetricCard title="Reserved" value={stats.reserved_listings} chart={<MiniLineChart data={mockTrend} />} />
+              <MetricCard title="Unread Messages" value={stats.unread_messages} chart={<MiniLineChart data={mockTrend} />} />
             </div>
 
             {/* Sales Overview à droite */}
             <div className="sales-overview-card">
               <h3 className="sales-overview-title">Sales Overview</h3>
               <ResponsiveContainer width="100%" height="90%">
-                <BarChart data={booksSoldData}>
+                <BarChart data={salesData.length > 0 ? salesData : []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="month" />
                   <YAxis />
@@ -135,25 +191,49 @@ export default function Dashboard() {
           <div className="dashboard-bottom-grid">
             {/* Top Properties */}
             <div className="top-properties-card">
-              <h3 className="top-properties-title">Most requested books</h3>
+              <h3 className="top-properties-title">Most Viewed Listings</h3>
               <div className="top-properties-list">
-                {topProperties.map((prop, i) => (
+                {popularListings.length > 0 ? popularListings.map((prop, i) => (
                   <PropertyItem key={i} {...prop} />
-                ))}
+                )) : <p className="text-gray-500">No views yet.</p>}
+              </div>
+            </div>
+
+            {/* Recent Activity */}
+            <div className="recent-activity-card" style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+              <h3 style={{ fontSize: '18px', fontWeight: 'bold', color: '#111827', marginBottom: '20px' }}>Recent Activity</h3>
+              <div className="activity-list">
+                {recentActivity.length > 0 ? recentActivity.map((activity, i) => (
+                  <div key={i} style={{ display: 'flex', gap: '12px', marginBottom: '16px', borderBottom: '1px solid #f3f4f6', paddingBottom: '12px' }}>
+                    <div style={{
+                      width: '40px', height: '40px', borderRadius: '50%',
+                      background: activity.type === 'notification' ? '#EBF5FF' : '#ECFDF5',
+                      color: activity.type === 'notification' ? '#3B82F6' : '#10B981',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+                    }}>
+                      {activity.type === 'notification' ? '🔔' : '⭐'}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: '600', color: '#374151' }}>{activity.title}</div>
+                      <div style={{ fontSize: '13px', color: '#6B7280' }}>{activity.message}</div>
+                      <div style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '4px' }}>
+                        {new Date(activity.timestamp).toLocaleDateString()} {new Date(activity.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  </div>
+                )) : <p className="text-gray-500">No recent activity.</p>}
               </div>
             </div>
 
             {/* Profile Settings */}
             <div className="profile-settings-card">
               {/* Header profil */}
-             
+
               <div className="profile-header">
                 <div className="profile-avatar-wrapper">
-                  <img
-                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=64&h=64&fit=crop"
-                    className="profile-avatar"
-                    alt="Profile"
-                  />
+                  <div className="profile-avatar" style={{ backgroundColor: '#ccc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                    {profile.firstName ? profile.firstName[0].toUpperCase() : 'U'}
+                  </div>
                   <div className="profile-status-indicator"></div>
                 </div>
                 <div>
@@ -161,8 +241,8 @@ export default function Dashboard() {
                   <p className="profile-subtitle">Manage your account information</p>
                 </div>
               </div>
-              
-              
+
+
               {/* Formulaire */}
               <div className="profile-form-row">
                 <div className="profile-form-group">
@@ -170,7 +250,7 @@ export default function Dashboard() {
                   <input
                     type="text"
                     name="firstName"
-                    value={formData.firstName}
+                    value={profile.firstName}
                     onChange={handleInputChange}
                     className="profile-form-input"
                   />
@@ -180,7 +260,7 @@ export default function Dashboard() {
                   <input
                     type="text"
                     name="lastName"
-                    value={formData.lastName}
+                    value={profile.lastName}
                     onChange={handleInputChange}
                     className="profile-form-input"
                   />
@@ -192,11 +272,11 @@ export default function Dashboard() {
                 <input
                   type="email"
                   name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="profile-form-input"
+                  value={profile.email}
+                  readOnly
+                  className="profile-form-input bg-gray-100"
                 />
-                
+
               </div>
 
               {/* Boutons */}
@@ -206,14 +286,12 @@ export default function Dashboard() {
                   Save Changes
                 </button>
               </div>
-              
+
             </div>
           </div>
 
         </div>
       </div>
-
-      
     </>
   );
 }

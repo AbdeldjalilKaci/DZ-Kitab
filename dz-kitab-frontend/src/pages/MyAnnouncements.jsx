@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import "./MyAnnouncements.css";
+import { Link, useNavigate } from "react-router-dom";
+// import "./MyAnnouncements.css";
 import Navbar from "../components/navbar";
 import Footer from "../components/footer";
-import axios from "axios";
-import {FaCheckCircle, FaExchangeAlt, FaTimesCircle } from "react-icons/fa";
+import api from "../utils/api";
+import { getCookie } from "../utils/cookies";
+import { FaCheckCircle, FaExchangeAlt, FaTimesCircle } from "react-icons/fa";
 
 const MyAnnouncements = () => {
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -20,46 +22,28 @@ const MyAnnouncements = () => {
 
   const API_BASE_URL = "http://localhost:8000";
 
-  // ✅ Fonction pour obtenir le token 
-  const getAuthToken = () => {
-    return localStorage.getItem("access_token"); 
-  };
-
-  // ✅ Fonction pour obtenir les headers avec authentification
-  const getAuthHeaders = () => {
-    const token = getAuthToken();
-    return {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    };
-  };
-
   // ✅ Charger les annonces de l'utilisateur connecté (AVEC AUTH)
   useEffect(() => {
     const fetchMyAnnouncements = async () => {
       try {
         setLoading(true);
         setError(null);
-        
-        const token = getAuthToken();
-        
+
+        const token = getCookie("access_token");
+
         // ✅ Vérifier si l'utilisateur est connecté
         if (!token) {
           setError("Vous devez être connecté pour voir vos annonces");
           setLoading(false);
+          navigate("/login");
           return;
         }
-        
+
         console.log("Fetching announcements...");
-        const response = await axios.get(
-          `${API_BASE_URL}/api/books/my-announcements`,
-          getAuthHeaders() // ✅ AVEC authentification
-        );
-        
+        const response = await api.get('/api/books/my-announcements');
+
         console.log("Response:", response.data);
-        
+
         // ✅ Gérer la structure de réponse du backend
         if (response.data?.announcements) {
           setBooks(response.data.announcements);
@@ -68,34 +52,27 @@ const MyAnnouncements = () => {
         } else {
           setBooks([]);
         }
-        
+
         setLoading(false);
       } catch (err) {
         console.error("Error loading announcements:", err);
-        
-        // ✅ Si erreur 401, token invalide ou expiré
-        if (err.response?.status === 401) {
-          localStorage.removeItem("access_token");
-          setError("Session expirée. Veuillez vous reconnecter.");
-        } else {
-          setError(
-            err.response?.data?.detail || 
-            err.message ||
-            "Erreur lors du chargement des annonces"
-          );
-        }
+        setError(
+          err.response?.data?.detail ||
+          err.message ||
+          "Erreur lors du chargement des annonces"
+        );
         setLoading(false);
       }
     };
 
     fetchMyAnnouncements();
-  }, []);
+  }, [navigate]);
 
   // ✅ Charger les catégories depuis l'API
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/api/books/categories`);
+        const res = await api.get('/api/books/categories');
         setCategories(res.data);
       } catch (err) {
         console.error("Error loading categories:", err);
@@ -128,34 +105,18 @@ const MyAnnouncements = () => {
 
   // ✅ Delete avec authentification
   const handleDelete = async (announcementId) => {
-    const token = getAuthToken();
-    
-    if (!token) {
-      alert("Vous devez être connecté");
-      return;
-    }
-
     if (!window.confirm("Êtes-vous sûr de vouloir supprimer cette annonce ?")) {
       return;
     }
 
     try {
-      await axios.delete(
-        `${API_BASE_URL}/api/books/announcements/${announcementId}`,
-        getAuthHeaders()
-      );
+      await api.delete(`/api/books/announcements/${announcementId}`);
 
       setBooks(books.filter((ann) => ann.id !== announcementId));
       alert("Annonce supprimée avec succès");
     } catch (error) {
       console.error("Delete error:", error);
-      
-      if (error.response?.status === 401) {
-        alert("Session expirée. Veuillez vous reconnecter.");
-        localStorage.removeItem("access_token");
-      } else {
-        alert(error.response?.data?.detail || "Erreur lors de la suppression");
-      }
+      alert(error.response?.data?.detail || "Erreur lors de la suppression");
     }
   };
 
@@ -164,7 +125,7 @@ const MyAnnouncements = () => {
 
   if (selectedDomains.length > 0) {
     filteredBooks = filteredBooks.filter((ann) =>
-      ann.book?.categories?.split(",").some((c) => 
+      ann.book?.categories?.split(",").some((c) =>
         selectedDomains.includes(c.trim())
       )
     );
@@ -228,7 +189,6 @@ const MyAnnouncements = () => {
 
   return (
     <>
-      <Navbar />
 
       <div className="listing-page">
         <div className="listing-container">
@@ -286,8 +246,8 @@ const MyAnnouncements = () => {
                       {priceRange === "0-500"
                         ? "< 500 DA"
                         : priceRange === "2000+"
-                        ? "> 2000 DA"
-                        : priceRange.replace("-", "–") + " DA"}
+                          ? "> 2000 DA"
+                          : priceRange.replace("-", "–") + " DA"}
                     </span>
                   </label>
                 ))}
@@ -361,9 +321,9 @@ const MyAnnouncements = () => {
                   </Link>
                 ) : (
                   <button text="Clear Filters"
-   className="w-40 h-12 rounded-[6px] bg-[#F3A109] text-white font-semibold leading-none transition-all duration-300 hover:bg-[#d89008] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(243,161,9,0.3)] cursor-pointer"
+                    className="w-40 h-12 rounded-[6px] bg-[#F3A109] text-white font-semibold leading-none transition-all duration-300 hover:bg-[#d89008] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(243,161,9,0.3)] cursor-pointer"
 
-                    
+
                     onClick={() => {
                       setSelectedDomains([]);
                       setSelectedPrice("");
@@ -384,9 +344,9 @@ const MyAnnouncements = () => {
                       <div className="book-image-wrapper">
                         <img
                           src={
-                            ann.book?.cover_image_url || 
+                            ann.book?.cover_image_url ||
                             (ann.custom_images ? `${API_BASE_URL}${ann.custom_images}` : null) ||
-"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='300' height='450' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='20' fill='%23666666'%3ENo Image%3C/text%3E%3C/svg%3E"                          }
+                            "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='450'%3E%3Crect width='300' height='450' fill='%23cccccc'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='20' fill='%23666666'%3ENo Image%3C/text%3E%3C/svg%3E"}
                           alt={ann.book?.title || "Book cover"}
                           className="book-image"
                           onError={(e) => {
@@ -398,8 +358,8 @@ const MyAnnouncements = () => {
                         <h4 className="book-title">{ann.book?.title || "Title not available"}</h4>
                         <div className="flex items-center gap-20 my-4">
                           <p className="book-price whitespace-nowrap">
-    {ann.price} DA
-  </p>
+                            {ann.price} DA
+                          </p>
                           <span
                             className={`px-2 py-1 rounded-full text-sm font-semibold flex items-center gap-1 ${getStatusClasses(
                               ann.status
@@ -409,15 +369,15 @@ const MyAnnouncements = () => {
                               <>
                                 <FaCheckCircle /> Active
                               </>
-                            ) 
-                              
-                             : ann.status?.toLowerCase() === "sold" || ann.status?.toLowerCase() === "vendu" ? (
-                              <>
-                                <FaTimesCircle /> Sold
-                              </>
-                            ) : (
-                              ann.status
-                            )}
+                            )
+
+                              : ann.status?.toLowerCase() === "sold" || ann.status?.toLowerCase() === "vendu" ? (
+                                <>
+                                  <FaTimesCircle /> Sold
+                                </>
+                              ) : (
+                                ann.status
+                              )}
                           </span>
                         </div>
                       </div>

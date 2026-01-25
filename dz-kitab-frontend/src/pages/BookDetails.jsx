@@ -46,7 +46,8 @@ const BookDetails = () => {
           isbn: ann.book.isbn,
           status: ann.status,
           pages: ann.page_count,
-          year: ann.publication_date
+          year: ann.publication_date,
+          user: ann.user // Pass seller info to ContactSeller
         };
         setBook(mappedBook);
         setSeller(ann.user);
@@ -231,7 +232,7 @@ const BookDetails = () => {
                 </div>
               </div>
               <div className="action-buttons">
-                <button className="buy-now-btn-detail">Buy Now</button>
+                <button className="buy-now-btn-detail" onClick={() => navigate('/contact-seller', { state: { book: book } })}>Buy Now</button>
                 <button
                   className="favorite-btn-detail"
                   onClick={() => toggleWishlist(book.id)}

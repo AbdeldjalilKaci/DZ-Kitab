@@ -142,7 +142,8 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
                 "phone_number": user.phone_number,
                 "is_active": user.is_active,
                 "created_at": str(user.created_at),
-                "updated_at": str(user.updated_at) if user.updated_at else None
+                "updated_at": str(user.updated_at) if user.updated_at else None,
+                "role": "admin" if user.is_admin else "user"
             }
         }
         
@@ -196,7 +197,8 @@ def get_current_user(token: str = Depends(security), db: Session = Depends(get_d
             "phone_number": user.phone_number,
             "is_active": user.is_active,
             "created_at": str(user.created_at),
-            "updated_at": str(user.updated_at) if user.updated_at else None
+            "updated_at": str(user.updated_at) if user.updated_at else None,
+            "role": "admin" if user.is_admin else "user"
         }
         
     except HTTPException:

@@ -2,29 +2,52 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // ← Import pour navigation
 import "./UsersAdmin.css";
 import NavAdmin from "./navbarAdmin";
-
-const initialUsers = [
-  { id: 1, name: "Ahmed Benali", email: "ahmed@gmail.com", role: "User", status: "active", joinedDate: "2024-01-15" },
-  { id: 2, name: "Sara Kacem", email: "sara@gmail.com", role: "Admin", status: "active", joinedDate: "2023-12-10" },
-  { id: 3, name: "Yanis Omar", email: "yanis@gmail.com", role: "User", status: "blocked", joinedDate: "2024-02-20" },
-  { id: 4, name: "Leila Mansouri", email: "leila@gmail.com", role: "User", status: "active", joinedDate: "2024-03-05" },
-];
+import api from "../../utils/api";
 
 export default function AdminUsers() {
-  const navigate = useNavigate(); // ← Navigation
-  useEffect(() => {
-    const token = localStorage.getItem("token"); // Vérifie le token
-    if (!token) {
-      navigate("/login"); // Redirige vers login si pas connecté
-    }
-  }, [navigate]);
+  const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [users, setUsers] = useState(initialUsers);
+  // Filters state
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRole, setFilterRole] = useState("all");
   const [sortBy, setSortBy] = useState("name");
   const [sortOrder, setSortOrder] = useState("asc");
+
+  // Fetch Users
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      // Construct query params
+      const params = { limit: 100 };
+      if (search) params.search = search;
+      if (filterStatus !== 'all') params.status = filterStatus;
+      if (filterRole !== 'all') params.role = filterRole.toLowerCase();
+
+      const response = await api.get('/api/admin/users', { params });
+
+      // Map backend user format to frontend format
+      const mappedUsers = response.data.users.map(u => ({
+        id: u.id,
+        name: u.username, // Using username as name
+        email: u.email,
+        role: u.role,
+        status: u.is_active ? "active" : "blocked",
+        joinedDate: u.created_at
+      }));
+      setUsers(mappedUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, [search, filterStatus, filterRole]); // Re-fetch when filters change (debouncing would be better for search)
 
   const handleSort = (field) => {
     if (sortBy === field) {
@@ -35,27 +58,34 @@ export default function AdminUsers() {
     }
   };
 
-  const toggleStatus = (id) => {
-    setUsers(prev =>
-      prev.map(u =>
-        u.id === id ? { ...u, status: u.status === "active" ? "blocked" : "active" } : u
-      )
-    );
+  const toggleStatus = async (id, currentStatus) => {
+    try {
+      if (currentStatus === "active") {
+        await api.put(`/api/admin/users/${id}/block`);
+      } else {
+        await api.put(`/api/admin/users/${id}/activate`);
+      }
+      // Refresh list
+      fetchUsers();
+    } catch (error) {
+      console.error("Error toggling user status:", error);
+      alert("Failed to update user status");
+    }
   };
 
-  const deleteUser = (id) => {
-    setUsers(prev => prev.filter(u => u.id !== id));
+  const deleteUser = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    try {
+      await api.delete(`/api/admin/users/${id}`);
+      fetchUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      alert("Failed to delete user");
+    }
   };
 
-  let filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) ||
-                          user.email.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = filterStatus === "all" || user.status === filterStatus;
-    const matchesRole = filterRole === "all" || user.role === filterRole;
-    return matchesSearch && matchesStatus && matchesRole;
-  });
-
-  filteredUsers = filteredUsers.sort((a, b) => {
+  // Local sorting (can also be done on backend if needed)
+  let sortedUsers = [...users].sort((a, b) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
 
@@ -131,80 +161,84 @@ export default function AdminUsers() {
         {/* Table */}
         <div className="admin-card">
           <div className="table-wrapper">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th onClick={() => handleSort("name")} className="sortable">
-                    Name {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </th>
-                  <th onClick={() => handleSort("email")} className="sortable">
-                    Email {sortBy === "email" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </th>
-                  <th>Role</th>
-                  <th onClick={() => handleSort("status")} className="sortable">
-                    Status {sortBy === "status" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </th>
-                  <th onClick={() => handleSort("joinedDate")} className="sortable">
-                    Joined {sortBy === "joinedDate" && (sortOrder === "asc" ? "↑" : "↓")}
-                  </th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredUsers.length > 0 ? (
-                  filteredUsers.map(user => (
-                    <tr key={user.id}>
-                      <td data-label="Name">
-                        <div className="user-name">
-                          <div className="user-avatar">{user.name.charAt(0)}</div>
-                          {user.name}
-                        </div>
-                      </td>
-                      <td data-label="Email">{user.email}</td>
-                      <td data-label="Role">
-                        <span className={`role role-${user.role.toLowerCase()}`}>{user.role}</span>
-                      </td>
-                      <td data-label="Status">
-                        <span className={`status ${user.status}`}>
-                          {user.status === "active" ? "✓ Active" : "✗ Blocked"}
-                        </span>
-                      </td>
-                      <td data-label="Joined">{new Date(user.joinedDate).toLocaleDateString('fr-DZ')}</td>
-                      <td data-label="Actions">
-                        <div className="actions">
-                          <button 
-                            className="btn btn-toggle" 
-                            onClick={() => toggleStatus(user.id)}
-                            title={user.status === "active" ? "Block user" : "Activate user"}
-                            disabled={user.role === "Admin"}
-                            style={{ opacity: user.role === "Admin" ? 0.5 : 1, cursor: user.role === "Admin" ? "not-allowed" : "pointer" }}
-                          >
-                            {user.status === "active" ? "Block" : "Activate"}
-                          </button>
-                          <button 
-                            className="btn btn-delete" 
-                            onClick={() => deleteUser(user.id)}
-                            title="Delete user"
-                            disabled={user.role === "Admin"}
-                            style={{ opacity: user.role === "Admin" ? 0.5 : 1, cursor: user.role === "Admin" ? "not-allowed" : "pointer" }}
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr><td colSpan="6" className="no-data">No users found</td></tr>
-                )}
-              </tbody>
-            </table>
+            {loading ? (
+              <div style={{ padding: '20px', textAlign: 'center' }}>Loading users...</div>
+            ) : (
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th onClick={() => handleSort("name")} className="sortable">
+                      Name {sortBy === "name" && (sortOrder === "asc" ? "↑" : "↓")}
+                    </th>
+                    <th onClick={() => handleSort("email")} className="sortable">
+                      Email {sortBy === "email" && (sortOrder === "asc" ? "↑" : "↓")}
+                    </th>
+                    <th>Role</th>
+                    <th onClick={() => handleSort("status")} className="sortable">
+                      Status {sortBy === "status" && (sortOrder === "asc" ? "↑" : "↓")}
+                    </th>
+                    <th onClick={() => handleSort("joinedDate")} className="sortable">
+                      Joined {sortBy === "joinedDate" && (sortOrder === "asc" ? "↑" : "↓")}
+                    </th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedUsers.length > 0 ? (
+                    sortedUsers.map(user => (
+                      <tr key={user.id}>
+                        <td data-label="Name">
+                          <div className="user-name">
+                            <div className="user-avatar">{user.name.charAt(0).toUpperCase()}</div>
+                            {user.name}
+                          </div>
+                        </td>
+                        <td data-label="Email">{user.email}</td>
+                        <td data-label="Role">
+                          <span className={`role role-${user.role.toLowerCase()}`}>{user.role}</span>
+                        </td>
+                        <td data-label="Status">
+                          <span className={`status ${user.status}`}>
+                            {user.status === "active" ? "✓ Active" : "✗ Blocked"}
+                          </span>
+                        </td>
+                        <td data-label="Joined">{new Date(user.joinedDate).toLocaleDateString('fr-DZ')}</td>
+                        <td data-label="Actions">
+                          <div className="actions">
+                            <button
+                              className="btn btn-toggle"
+                              onClick={() => toggleStatus(user.id, user.status)}
+                              title={user.status === "active" ? "Block user" : "Activate user"}
+                              disabled={user.role === "Admin"}
+                              style={{ opacity: user.role === "Admin" ? 0.5 : 1, cursor: user.role === "Admin" ? "not-allowed" : "pointer" }}
+                            >
+                              {user.status === "active" ? "Block" : "Activate"}
+                            </button>
+                            <button
+                              className="btn btn-delete"
+                              onClick={() => deleteUser(user.id)}
+                              title="Delete user"
+                              disabled={user.role === "Admin"}
+                              style={{ opacity: user.role === "Admin" ? 0.5 : 1, cursor: user.role === "Admin" ? "not-allowed" : "pointer" }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr><td colSpan="6" className="no-data">No users found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
         {/* Results Info */}
         <div className="results-info">
-          Showing {filteredUsers.length} users — {stats.normalUsers} User(s), {stats.admins} Admin(s)
+          Showing {sortedUsers.length} users — {stats.normalUsers} User(s), {stats.admins} Admin(s)
         </div>
       </div>
     </>

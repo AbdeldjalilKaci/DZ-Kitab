@@ -14,9 +14,9 @@ import BookDetails from "./pages/BookDetails";
 import AdminUsers from "./pages/Admin/UsersAdmin";
 import AnnouncementsAdmin from "./pages/Admin/AnnouncementsAdmin";
 import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
-
+import Notifications from "./pages/Notifications";
+import ContactSeller from "./pages/ContactSeller";
 import "./style.css";
-import MyAnnouncements from "./pages/MyAnnouncements";
 import { getCookie } from "./utils/cookies";
 
 const PrivateRoute = ({ children }) => {
@@ -42,47 +42,57 @@ export default function App() {
             <Login />
           </PublicRoute>
         } />
+
+        {/* Admin Routes */}
         <Route path="/UsersAdmin" element={
-          <PublicRoute>
+          <PrivateRoute>
             <AdminUsers />
-          </PublicRoute>
+          </PrivateRoute>
         } />
-         <Route path="/AnnouncementsAdmin" element={
-          <PublicRoute>
+        <Route path="/AnnouncementsAdmin" element={
+          <PrivateRoute>
             <AnnouncementsAdmin />
-          </PublicRoute>
+          </PrivateRoute>
         } />
+        <Route path="/DashboardAdmin" element={
+          <PrivateRoute>
+            <DashboardAdmin />
+          </PrivateRoute>
+        } />
+
         <Route path="/register" element={
           <PublicRoute>
             <Register />
           </PublicRoute>
         } />
-         <Route path="/MyAnnouncements" element={
-          <PrivateRoute>
-            <MyAnnouncements />
-          </PrivateRoute>
-        } />
-        <Route path="/DashboardAdmin" element={
-          <PublicRoute>
-            <DashboardAdmin />
-          </PublicRoute>
-        } />
 
+        {/* User Routes */}
         <Route path="/addannounce" element={
           <PrivateRoute>
             <AddAnnounce />
           </PrivateRoute>
         } />
         <Route path="/dashboard" element={
-          <PublicRoute>
-            <Dashboard/>
-          </PublicRoute>
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
         } />
         <Route path="/message" element={
           <PrivateRoute>
             <Messages />
           </PrivateRoute>
         } />
+        <Route path="/notifications" element={
+          <PrivateRoute>
+            <Notifications />
+          </PrivateRoute>
+        } />
+        <Route path="/contact-seller" element={
+          <PrivateRoute>
+            <ContactSeller />
+          </PrivateRoute>
+        } />
+
         <Route path="/myannouncements" element={
           <PrivateRoute>
             <MyAnnouncements />
