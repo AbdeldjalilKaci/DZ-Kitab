@@ -1362,3 +1362,9 @@ footer p {
     font-size: 20px;
   }
 }
+/* Notification Badge */
+.relative { position: relative; }
+.notification-badge { position: absolute; top: -5px; right: -5px; background-color: #ef4444; color: white; f-size: 10px; font-weight: bold; height: 16px; width: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid white; z-index: 10; }
+
+/* Notification Dot */
+.notification-dot { position: absolute; top: 2px; right: 2px; background-color: #ef4444; height: 8px; width: 8px; border-radius: 50%; border: 1px solid white; z-index: 10; }

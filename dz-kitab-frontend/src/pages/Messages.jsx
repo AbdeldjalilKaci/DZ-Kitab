@@ -10,10 +10,11 @@ const Messages = () => {
     const [activeChat, setActiveChat] = useState(null); // Use conversation ID or Object
     const [newMessage, setNewMessage] = useState('');
     const [conversations, setConversations] = useState([]);
+    const [searchQuery, setSearchQuery] = useState(''); // NEW: search state
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch conversations on load
+    // Fetch conversations on load and poll
     useEffect(() => {
         const fetchConversations = async () => {
             try {
@@ -21,17 +22,13 @@ const Messages = () => {
                 const convs = res.data.conversations;
                 setConversations(convs);
 
-                if (convs.length > 0) {
-                    if (conversationIdFromUrl) {
-                        const targetConv = convs.find(c => c.id === parseInt(conversationIdFromUrl));
-                        if (targetConv) {
-                            setActiveChat(targetConv);
-                        } else {
-                            setActiveChat(convs[0]);
-                        }
-                    } else {
-                        setActiveChat(convs[0]); // Select first chat by default
-                    }
+                if (convs.length > 0 && !activeChat && !conversationIdFromUrl) {
+                    setActiveChat(convs[0]); // Select first chat by default only on initial load
+                }
+
+                if (conversationIdFromUrl && !activeChat) {
+                    const targetConv = convs.find(c => c.id === parseInt(conversationIdFromUrl));
+                    if (targetConv) setActiveChat(targetConv);
                 }
             } catch (error) {
                 console.error("Error fetching conversations:", error);
@@ -39,23 +36,40 @@ const Messages = () => {
                 setLoading(false);
             }
         };
-        fetchConversations();
-    }, [conversationIdFromUrl]);
 
-    // Fetch messages when activeChat changes
+        fetchConversations();
+        const interval = setInterval(fetchConversations, 10000); // Poll every 10s
+        return () => clearInterval(interval);
+    }, [conversationIdFromUrl, activeChat?.id]); // Re-run if ID changes
+
+    // Derived state: filtered conversations
+    const filteredConversations = conversations.filter(conv =>
+        conv.other_user_username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Fetch messages when activeChat changes and poll
     useEffect(() => {
-        if (activeChat) {
-            const fetchMessages = async () => {
-                try {
-                    const res = await api.get(`/api/messages/conversations/${activeChat.id}`);
-                    setMessages(res.data.messages);
-                } catch (error) {
-                    console.error("Error fetching messages:", error);
-                }
-            };
-            fetchMessages();
-        }
-    }, [activeChat]);
+        if (!activeChat) return;
+
+        const fetchMessages = async () => {
+            try {
+                const res = await api.get(`/api/messages/conversations/${activeChat.id}`);
+                // Only update if count changed or initial load to avoid flickering
+                setMessages(prev => {
+                    if (JSON.stringify(prev) !== JSON.stringify(res.data.messages)) {
+                        return res.data.messages;
+                    }
+                    return prev;
+                });
+            } catch (error) {
+                console.error("Error fetching messages:", error);
+            }
+        };
+
+        fetchMessages();
+        const interval = setInterval(fetchMessages, 5000); // Poll messages faster (5s)
+        return () => clearInterval(interval);
+    }, [activeChat?.id]);
 
     const handleSendMessage = async (e) => {
         e.preventDefault();
@@ -84,12 +98,18 @@ const Messages = () => {
                     <h2 className="messages-title">Messages</h2>
                     <div className="search-bar flex gap-2 ">
                         <CiSearch />
-                        <input type="text" placeholder="Search" className=" h-full  outline-none border-0 focus:outline-none focus:border-0 " />
+                        <input
+                            type="text"
+                            placeholder="Search"
+                            className=" h-full  outline-none border-0 focus:outline-none focus:border-0 "
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
                     </div>
                     <div className="recent-conversations">
                         <h3 className="recent-title">Recent Conversations</h3>
                         <div className="conversations-list">
-                            {loading ? <p>Loading chats...</p> : conversations.map((conv) => (
+                            {loading ? <p>Loading chats...</p> : filteredConversations.map((conv) => (
                                 <div
                                     key={conv.id}
                                     className={`conversation-item ${activeChat?.id === conv.id ? 'active' : ''}`}

@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.message import Message, Conversation, MessageStatus
 from app.models.user import User
 from app.models.book import Announcement, Book
+from app.models.notification import Notification, NotificationType
 from app.schemas.message import (
     MessageCreate,
     MessageResponse,
@@ -145,6 +146,20 @@ def contact_seller(
                 book_title = announcement.book.title
 
             if seller and buyer:
+                # 6a. Create in-app notification
+                notification = Notification(
+                    user_id=seller_id,
+                    type=NotificationType.MESSAGE_RECEIVED,
+                    title="Nouveau message",
+                    message=f"{buyer.username} vous a envoye un message concernant '{book_title}'",
+                    related_user_id=user_id,
+                    related_announcement_id=contact_data.announcement_id,
+                    action_url=f"/message?conversationId={conversation.id}"
+                )
+                db.add(notification)
+                # Single commit for everything
+                db.commit()
+
                 email_subject = f"Nouveau message concernant '{book_title}'"
                 email_html = f"""
                 <h2>Nouveau message reu</h2>
@@ -427,14 +442,27 @@ def send_message(
         conversation.last_message = content[:100]
         conversation.last_message_at = datetime.utcnow()
         
-        print("Commiting message to database...")
-        db.commit()
-        db.refresh(message)
-        print(f"Message sent successfully: {message.id}")
-        
+        print("Fetching users for notification...")
         sender = db.query(User).filter(User.id == user_id).first()
         receiver = db.query(User).filter(User.id == receiver_id).first()
         
+        if sender and receiver:
+            # Create in-app notification
+            notification = Notification(
+                user_id=receiver_id,
+                type=NotificationType.MESSAGE_RECEIVED,
+                title="Nouveau message",
+                message=f"{sender.username} vous a envoye un message",
+                related_user_id=user_id,
+                action_url=f"/message?conversationId={conversation_id}"
+            )
+            db.add(notification)
+
+        print("Commiting message and notification to database...")
+        db.commit()
+        db.refresh(message)
+        print(f"Message and notification sent: {message.id}")
+
         return MessageResponse(
             id=message.id,
             conversation_id=message.conversation_id,

@@ -14,19 +14,36 @@ const Header = () => {
   const [user, setUser] = useState(null);
   const [isbnSearch, setIsbnSearch] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0); // NEW: Unread count state
+
+  const fetchUnreadCount = async () => {
+    if (!token) return;
+    try {
+      const res = await api.get("/api/notifications/unread-count");
+      setUnreadCount(res.data.unread_count || 0);
+    } catch (e) {
+      console.error("Error fetching unread count", e);
+    }
+  };
 
   useEffect(() => {
     try {
       const userData = getCookie("user");
       if (userData) {
         const parsedUser = JSON.parse(userData);
-        console.log("Current User:", parsedUser);
-        console.log("User Role:", parsedUser.role);
         setUser(parsedUser);
+        fetchUnreadCount(); // Initial fetch
       }
     } catch (e) {
       console.error("Error parsing user cookie", e);
     }
+
+    // Polling interval (30 seconds)
+    const interval = setInterval(() => {
+      if (token) fetchUnreadCount();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, [token]);
 
   const handleLogout = () => {
@@ -138,8 +155,11 @@ const Header = () => {
           <Link to="/wishlist">
             <CiHeart className="icon" />
           </Link>
-          <Link to="/notifications">
+          <Link to="/notifications" className="relative group">
             <IoIosNotificationsOutline className="icon" />
+            {unreadCount > 0 && (
+              <span className="notification-dot"></span>
+            )}
           </Link>
         </div>
         <div style={{ position: 'relative' }}>
