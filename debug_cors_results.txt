@@ -1,0 +1,35 @@
+--- TESTING PREFLIGHT (OPTIONS) ---
+Status: 400
+Headers:
+  Access-Control-Allow-Credentials: true
+  Access-Control-Allow-Headers: Accept, Accept-Language, Authorization, Content-Language, Content-Type, X-CSRF-Token, X-Requested-With
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, PATCH, OPTIONS
+  Access-Control-Max-Age: 600
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Length: 22
+  Content-Type: text/plain; charset=utf-8
+  Date: Sun, 25 Jan 2026 18:29:03 GMT
+  Server: Vercel
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  Vary: Origin
+  X-Vercel-Cache: MISS
+  X-Vercel-Enable-Rewrite-Caching: 1
+  X-Vercel-Id: cdg1::iad1::vrrsz-1769365772767-a5cc6034afce
+
+--- TESTING REGISTRATION (POST) ---
+Status: 500
+Response Body: {"detail":"Erreur lors de l'inscription: (psycopg2.OperationalError) invalid sslmode value: \"require\r\"\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"}
+Headers:
+  Access-Control-Allow-Credentials: true
+  Access-Control-Expose-Headers: Content-Length, Content-Range, X-Total-Count
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Length: 171
+  Content-Type: application/json
+  Date: Sun, 25 Jan 2026 18:29:03 GMT
+  Server: Vercel
+  Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-Process-Time: 0.150
+  X-Request-Id: 1769365774081
+  X-Vercel-Cache: MISS
+  X-Vercel-Enable-Rewrite-Caching: 1
+  X-Vercel-Id: cdg1::iad1::xfdn7-1769365773879-36e482eeb64d
