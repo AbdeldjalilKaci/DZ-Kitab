@@ -8,6 +8,7 @@ import time
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError, IntegrityError
 from jose import JWTError
+from app.core.cors import configure_cors, add_cors_debug_middleware
 
 from app.routers import (
     upload, books, condition, ratings, notifications, auth, 
@@ -27,6 +28,9 @@ from app.core.errors import (
 from app.core.cors import configure_cors, add_cors_debug_middleware
 from app.core.logging_config import setup_logging, RequestLoggingMiddleware
 import app.models
+
+add_cors_debug_middleware(app)  # optional, just for debugging
+configure_cors(app)  # this applies your CORS settings
 
 import app.models
 
