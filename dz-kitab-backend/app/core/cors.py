@@ -12,10 +12,12 @@ def get_allowed_origins() -> List[str]:
     environment = os.getenv("ENVIRONMENT", "development")
     allowed_origins_raw = os.getenv("ALLOWED_ORIGINS", "")
     
-    # Base origins toujours autorisables
+    # Base origins toujours autorisables (Vercel Frontend)
     base_origins = [
         "https://dz-kitab-frontend.vercel.app",
-        "https://dz-kitab-frontend-abdeldjalil-kacis-projects.vercel.app"
+        "https://dz-kitab-frontend-abdeldjalil-kacis-projects.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:3000"
     ]
     
     if environment == "production":
@@ -28,19 +30,14 @@ def get_allowed_origins() -> List[str]:
             if bo not in result:
                 result.append(bo)
         
-        print(f"DEBUG: Production Origins: {result}")
         return result
     else:
-        # En dveloppement, autoriser localhost et 127.0.0.1
-        return [
-            "http://localhost:3000",
-            "http://localhost:5173",
+        # En dveloppement, autoriser localhost ET les domaines de prod pour faciliter les tests
+        return base_origins + [
             "http://127.0.0.1:3000",
             "http://127.0.0.1:5173",
             "http://localhost:8000",
             "http://127.0.0.1:8000",
-            "http://0.0.0.0:3000",
-            "http://0.0.0.0:5173",
         ]
 
 
