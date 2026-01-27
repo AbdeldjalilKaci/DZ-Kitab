@@ -105,7 +105,6 @@ const Header = () => {
       <div className="links">
         <Link to="/">Home</Link>
         <Link to="/catalog">Books</Link>
-        <Link to="/community">Community</Link>
         <a href="#about">About us</a>
         <a href="#contact">Contact us</a>
       </div>
@@ -136,7 +135,6 @@ const Header = () => {
       <div className="links">
         <Link to="/">Home</Link>
         <Link to="/catalog">Books</Link>
-        <Link to="/community">Community</Link>
         <Link to="/addannounce">Add Announcement</Link>
         {/* Admin Link if role is admin */}
         {user && user.role === 'admin' && (
