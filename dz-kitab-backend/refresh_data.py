@@ -8,13 +8,17 @@ BASE_DIR = Path(__file__).resolve().parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from app.database import SessionLocal, engine
+from app.database import SessionLocal, engine, Base
 from app.models.book import Book, Announcement, BookCategoryEnum, BookConditionEnum, AnnouncementStatusEnum
 from app.models.user import User, UniversityEnum
 from app.services.auth import get_password_hash
 from sqlalchemy import text
 
 def refresh():
+    # Ensure tables exist
+    print("Ensuring database tables exist...")
+    Base.metadata.create_all(bind=engine)
+    
     session = SessionLocal()
     try:
         # 1. NUCLEAR CLEANUP

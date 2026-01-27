@@ -6,8 +6,9 @@ PORT="${PORT:-8000}"
 
 echo "Starting backend on port $PORT..."
 
-# Optional: Run migrations if needed
-# alembic upgrade head
+# Ensure schema exists (Automatic migration equivalent)
+echo "Syncing database schema..."
+python -c "from app.database import engine, Base; from app.models.user import User; from app.models.book import Book, Announcement; Base.metadata.create_all(bind=engine)"
 
 # Start Gunicorn with Uvicorn workers
 exec gunicorn app.main:app \
