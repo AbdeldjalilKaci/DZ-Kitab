@@ -41,26 +41,28 @@ def refresh():
         
         print("Database cleared successfully.")
 
-        # 2. CREATE PROFESSIONAL USERS
-        print("Creating professional academic users...")
-        hashed_pw = get_password_hash("Jalil.com0")
+        # 2. CREATE REQUESTED USERS
+        print("Creating requested users (1 Admin + 10 Students)...")
+        # Admin Password: Admin.com2026
+        admin_pw = get_password_hash("Admin.com2026")
+        # Normal User Password: User.com2026
+        user_pw = get_password_hash("User.com2026")
         
         user_data = [
-            {"email": "a_kaci@estin.dz", "username": "akaci", "first_name": "Abdedjalil", "last_name": "Kaci", "university": UniversityEnum.ESTIN, "is_admin": True},
-            {"email": "m_amrouche@estin.dz", "username": "malek", "first_name": "Malek", "last_name": "Amrouche", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "c_benmohamed@estin.dz", "username": "chaima", "first_name": "Chaima", "last_name": "Benmohamed", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "y_belkadi@estin.dz", "username": "yacine", "first_name": "Yacine", "last_name": "Belkadi", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "s_hamidi@estin.dz", "username": "sarah", "first_name": "Sarah", "last_name": "Hamidi", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "o_farah@estin.dz", "username": "omar", "first_name": "Omar", "last_name": "Farah", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "l_meriem@estin.dz", "username": "meriem", "first_name": "Meriem", "last_name": "Lounes", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "r_sidali@estin.dz", "username": "sidali", "first_name": "Sidali", "last_name": "Rezgui", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "h_amine@estin.dz", "username": "amine", "first_name": "Amine", "last_name": "Habibi", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "k_lynda@estin.dz", "username": "lynda", "first_name": "Lynda", "last_name": "Khelifi", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "n_ryad@estin.dz", "username": "ryad", "first_name": "Ryad", "last_name": "Nacer", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "i_imene@estin.dz", "username": "imene", "first_name": "Imene", "last_name": "Ikhlef", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "f_sofiane@estin.dz", "username": "sofiane", "first_name": "Sofiane", "last_name": "Fekir", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "z_hadjer@estin.dz", "username": "hadjer", "first_name": "Hadjer", "last_name": "Ziani", "university": UniversityEnum.ESTIN, "is_admin": False},
-            {"email": "m_mehdi@estin.dz", "username": "mehdi", "first_name": "Mehdi", "last_name": "Messaoudi", "university": UniversityEnum.ESTIN, "is_admin": False}
+            # The requested Admin account
+            {"email": "admin@dz-kitab.com", "username": "admin", "first_name": "DZ-Kitab", "last_name": "Admin", "university": UniversityEnum.ESTIN, "is_admin": True, "pw": admin_pw},
+            
+            # 10 Normal users
+            {"email": "djalil_st@estin.dz", "username": "djalil_st", "first_name": "Djalil", "last_name": "Student", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "meriem_dz@estin.dz", "username": "meriem", "first_name": "Meriem", "last_name": "Lounis", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "aniss_bk@estin.dz", "username": "aniss", "first_name": "Aniss", "last_name": "Belkadi", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "lynda_kh@estin.dz", "username": "lynda", "first_name": "Lynda", "last_name": "Khelifi", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "amine_hb@estin.dz", "username": "amine", "first_name": "Amine", "last_name": "Habibi", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "sarah_hm@estin.dz", "username": "sarah", "first_name": "Sarah", "last_name": "Hamidi", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "omar_fr@estin.dz", "username": "omar", "first_name": "Omar", "last_name": "Farah", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "ryad_nc@estin.dz", "username": "ryad", "first_name": "Ryad", "last_name": "Nacer", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "imene_ik@estin.dz", "username": "imene", "first_name": "Imene", "last_name": "Ikhlef", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw},
+            {"email": "sofiane_fk@estin.dz", "username": "sofiane", "first_name": "Sofiane", "last_name": "Fekir", "university": UniversityEnum.ESTIN, "is_admin": False, "pw": user_pw}
         ]
 
         created_users = []
@@ -68,7 +70,7 @@ def refresh():
             user = User(
                 email=u_info["email"],
                 username=u_info["username"],
-                hashed_password=hashed_pw,
+                hashed_password=u_info["pw"],
                 first_name=u_info["first_name"],
                 last_name=u_info["last_name"],
                 university=u_info["university"],
