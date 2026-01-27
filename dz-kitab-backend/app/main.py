@@ -120,18 +120,27 @@ def read_root():
 @app.get("/health")
 def health_check():
     db_status = "connected"
+    tables = {}
     try:
         db = SessionLocal()
         db.execute(text("SELECT 1"))
+        # Check critical tables
+        for table in ["users", "announcements", "books"]:
+            try:
+                db.execute(text(f"SELECT 1 FROM {table} LIMIT 1"))
+                tables[table] = "exists"
+            except Exception:
+                tables[table] = "missing"
         db.close()
     except Exception as e:
         db_status = f"error: {str(e)}"
     
     return {
-        "status": "healthy" if db_status == "connected" else "unhealthy",
+        "status": "healthy" if db_status == "connected" and all(v == "exists" for v in tables.values()) else "unhealthy",
         "database": db_status,
+        "tables": tables,
         "timestamp": time.time(),
-        "version": "2.1.20"
+        "version": "2.1.21"
     }
 
 # ===============================
