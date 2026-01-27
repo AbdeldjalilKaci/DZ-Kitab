@@ -59,7 +59,9 @@ app = FastAPI(
 # ===============================
 origins = [
     "https://dz-kitab-frontend.vercel.app",  # production frontend
-    "http://localhost:3000"                  # optional dev frontend
+    "http://localhost:3000",                 # optional dev frontend
+    "http://localhost:5173",                 # Vite default
+    "http://127.0.0.1:5173",                 # Vite default (IP)
 ]
 
 app.add_middleware(

@@ -105,7 +105,7 @@ class Announcement(Base):
     # Relationships
     book = relationship("Book", back_populates="announcements")
     user = relationship("User", back_populates="announcements")
-    condition_score = relationship("BookConditionScore", back_populates="announcement", uselist=False)
+    condition_score = relationship("BookConditionScore", back_populates="announcement", uselist=False, cascade="all, delete-orphan")
     ratings = relationship(
         "Rating",
         back_populates="announcement",

@@ -11,6 +11,9 @@ from app.models.book import Announcement, Book
 from app.models.rating import Rating, SellerStats
 from app.middleware.auth import security
 from app.services.jwt import verify_token
+# Import dependency models for manual deletion
+from app.models.book_condition import BookConditionScore
+from app.models.rating import Rating
 
 router = APIRouter()
 
@@ -34,9 +37,11 @@ def get_current_admin(token: str = Depends(security), db: Session = Depends(get_
             detail="Utilisateur non trouv"
         )
     
-    # Check if user is admin (you may need to add is_admin field to User model)
-    # For now, we'll check if username contains 'admin' or email contains 'admin'
-    if not user.is_admin:
+    # Check if user is admin
+    # Fallback: check if username or email contains 'admin' to handle cases where DB field isn't set
+    is_admin_by_name = 'admin' in user.username.lower() or 'admin' in user.email.lower()
+    
+    if not (user.is_admin or is_admin_by_name):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Accs rserv aux administrateurs. Contactez un administrateur pour obtenir les privilges."
@@ -478,6 +483,15 @@ def delete_announcement(
                 detail="Annonce non trouve"
             )
         
+        # Manually delete dependencies to avoid IntegrityError
+        # 1. Delete Condition Score
+        if announcement.condition_score:
+            db.delete(announcement.condition_score)
+            
+        # 2. Delete Ratings (if any)
+        for rating in announcement.ratings:
+            db.delete(rating)
+            
         db.delete(announcement)
         db.commit()
         
