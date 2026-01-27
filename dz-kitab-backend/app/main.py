@@ -121,7 +121,10 @@ def read_root():
 def health_check():
     db_status = "connected"
     tables = {}
+    db_host = "unknown"
     try:
+        db_host = engine.url.host
+        from app.database import SessionLocal
         db = SessionLocal()
         db.execute(text("SELECT 1"))
         # Check critical tables
@@ -138,9 +141,10 @@ def health_check():
     return {
         "status": "healthy" if db_status == "connected" and all(v == "exists" for v in tables.values()) else "unhealthy",
         "database": db_status,
+        "database_host": db_host,
         "tables": tables,
         "timestamp": time.time(),
-        "version": "2.1.21"
+        "version": "2.1.22"
     }
 
 # ===============================
