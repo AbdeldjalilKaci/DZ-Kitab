@@ -21,3 +21,7 @@ pydantic[email]==2.5.0
 # Production Server
 gunicorn==21.2.0
 uvicorn[standard]==0.24.0
+watchfiles==0.21.0
+
+# Scraping
+beautifulsoup4==4.12.2

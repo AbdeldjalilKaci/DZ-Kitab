@@ -1,0 +1,34 @@
+Starting Nuclear Database Cleanup...
+Clearing table: wishlist
+Clearing table: favorites
+Clearing table: ratings
+Clearing table: book_condition_scores
+Clearing table: notifications
+Clearing table: notification_preferences
+Clearing table: messages
+Clearing table: announcements
+Clearing table: books
+Clearing table: seller_stats
+Clearing table: rating_alerts
+Clearing table: user_suspensions
+Clearing table: user_badges
+Warning: Could not clear table user_badges: (psycopg2.errors.UndefinedTable) relation "user_badges" does not exist
+LINE 1: DELETE FROM user_badges
+                    ^
+
+[SQL: DELETE FROM user_badges]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+Clearing table: users
+Warning: Could not clear table users: (psycopg2.errors.ForeignKeyViolation) update or delete on table "users" violates foreign key constraint "announcements_user_id_fkey" on table "announcements"
+DETAIL:  Key (id)=(14) is still referenced from table "announcements".
+
+[SQL: DELETE FROM users]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+Database cleared successfully.
+Creating professional academic users...
+Error during refresh: (psycopg2.errors.UniqueViolation) duplicate key value violates unique constraint "ix_users_email"
+DETAIL:  Key (email)=(a_kaci@estin.dz) already exists.
+
+[SQL: INSERT INTO users (email, username, hashed_password, first_name, last_name, university, phone_number, is_active, is_admin, updated_at, profile_picture_url) VALUES (%(email)s, %(username)s, %(hashed_password)s, %(first_name)s, %(last_name)s, %(university)s, %(phone_number)s, %(is_active)s, %(is_admin)s, %(updated_at)s, %(profile_picture_url)s) RETURNING users.id, users.created_at]
+[parameters: {'email': 'a_kaci@estin.dz', 'username': 'akaci', 'hashed_password': '$2b$12$tGg6V6U5P6W6Y6U5P6W6Yux.v5k2k6i7Bv3F8v4m1O1m1O1m1O1m1', 'first_name': 'Abdedjalil', 'last_name': 'Kaci', 'university': 'ESTIN', 'phone_number': None, 'is_active': True, 'is_admin': True, 'updated_at': None, 'profile_picture_url': None}]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)

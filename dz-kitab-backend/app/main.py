@@ -40,7 +40,7 @@ from app.core.errors import (
 )
 from app.routers import (
     books, condition, ratings, notifications, auth,
-    wishlist, admin, recommendations, dashboard, messages, curriculum
+    wishlist, admin, recommendations, dashboard, messages, curriculum, users
 )
 
 # ===============================
@@ -104,6 +104,7 @@ app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(recommendations.router, prefix="/api/recommendations", tags=["Recommendations"])
 app.include_router(messages.router, prefix="/api/messages", tags=["Messages"])
 app.include_router(curriculum.router, prefix="/api/curriculum", tags=["Curriculum"])
+app.include_router(users.router, prefix="/api/public/users", tags=["Public Users"])
 
 # ===============================
 # ROOT & HEALTH ENDPOINTS

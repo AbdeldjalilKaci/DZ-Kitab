@@ -17,6 +17,7 @@ import DashboardAdmin from "./pages/Admin/DashboardAdmin.jsx";
 import Notifications from "./pages/Notifications";
 import ContactSeller from "./pages/ContactSeller";
 import EditAnnounce from "./pages/EditAnnounce";
+import Community from "./pages/Community";
 import "./style.css";
 import { getCookie } from "./utils/cookies";
 
@@ -105,6 +106,7 @@ export default function App() {
           </PrivateRoute>
         } />
         <Route path="/catalog" element={<Listing />} />
+        <Route path="/community" element={<Community />} />
         <Route path="/wishlist" element={
           <PrivateRoute>
             <Wishlist />
