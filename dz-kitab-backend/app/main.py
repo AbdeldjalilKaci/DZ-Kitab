@@ -48,8 +48,8 @@ from app.routers import (
 # ===============================
 app = FastAPI(
     title="DZ-Kitab API",
-    version="2.1.20",
-    description="API for DZ-Kitab - Production Outage Fix applied",
+    version="2.1.21",
+    description="API for DZ-Kitab - Production Fix 2.1.21 (Vercel)",
     docs_url="/docs",
     redoc_url="/redoc"
 )
