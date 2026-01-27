@@ -59,7 +59,8 @@ app = FastAPI(
 # ===============================
 origins = [
     "https://dz-kitab-frontend.vercel.app",  # production frontend
-    "https://dz-backend-fix.vercel.app",     # production backend (self)
+    "https://dz-kitab-backend-v2.vercel.app", # NEW production backend
+    "https://dz-backend-fix.vercel.app",     # old backend (kept for safety)
     "http://localhost:3000",                 # optional dev frontend
     "http://localhost:5173",                 # Vite default
     "http://127.0.0.1:5173",                 # Vite default (IP)
