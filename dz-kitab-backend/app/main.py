@@ -144,7 +144,7 @@ def health_check():
         "database_host": db_host,
         "tables": tables,
         "timestamp": time.time(),
-        "version": "2.1.23"
+        "version": "2.1.24"
     }
 
 @app.get("/api/debug/create-admin")
