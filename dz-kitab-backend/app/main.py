@@ -59,6 +59,7 @@ app = FastAPI(
 # ===============================
 origins = [
     "https://dz-kitab-frontend.vercel.app",  # production frontend
+    "https://dz-kitab-frontend-production.up.railway.app", # Railway production frontend
     "https://dz-backend-fix.vercel.app",     # production backend (self)
     "http://localhost:3000",                 # optional dev frontend
     "http://localhost:5173",                 # Vite default
